@@ -1,0 +1,26 @@
+{
+  "name": "smallorange-graphql-subscriptions",
+  "version": "1.0.0",
+  "description": "Graphql subscription manager",
+  "main": "index.js",
+  "scripts": {
+    "test": "NODE_ENV=test ./node_modules/.bin/_mocha spec --recursive --watch --timeout 5000",
+    "coverage": "NODE_ENV=test ./node_modules/.bin/istanbul cover -x spec/** ./node_modules/.bin/_mocha -- 'spec' --recursive --timeout 5000",
+    "deploy": "npm version patch -m 'Bump %s' && git push origin master && npm publish"
+  },
+  "author": "Felipe Rohde",
+  "license": "ISC",
+  "dependencies": {
+    "graphql": "^0.9.1",
+    "map-map-2": "^1.0.0",
+    "md5": "^2.2.1",
+    "rxjs": "^5.2.0",
+    "smallorange-graphql-lazy-executor": "^1.0.7"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0",
+    "sinon": "^1.17.7",
+    "sinon-chai": "^2.8.0"
+  }
+}

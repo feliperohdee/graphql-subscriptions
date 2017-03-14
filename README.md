@@ -4,7 +4,7 @@
 
 ## Wht it does
 
-This is a simple GraphQl subscriptions manager, it takes care to group similar queries which belongs to same type, namespace and same variables, runs with maximum concurrency (thank u rxjs again), and dispatch data via stream.
+This is a simple GraphQl subscriptions manager, it takes care to group similar queries which belongs to same namespace, type and variables, runs with maximum concurrency (thank u rxjs again), and dispatch data via stream.
 
 ## Wht is doesn't
 
@@ -77,7 +77,7 @@ It doesn't take care to broadcast messages to right subscribers, it just broadca
 		    .toArray()
 		    .subscribe(console.log);
 
-		   graphqlSubscriptions.run(type, namespace, {
+		   graphqlSubscriptions.run(namespace, type, {
 		        age: 20
 		    });
 
@@ -131,11 +131,11 @@ It doesn't take care to broadcast messages to right subscribers, it just broadca
 		};
 
 		redis.onChannel('updateStream', ({
-			type,
 			namespace,
+			type,
 			data
 		}) => {
-			graphqlSubscriptions.run(type, namespace, data);
+			graphqlSubscriptions.run(namespace, type, data);
 		});
 
 		graphqlSubscriptions.stream

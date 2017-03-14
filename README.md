@@ -153,12 +153,13 @@ It doesn't take care to broadcast messages to right subscribers, it just broadca
 							return aclContexts.comentAdded({ // or aclContexts[type]
 								namespace,
 								root
-							}, client.auth)
+							}, client.auth, {
+								rejectSilently: true
+							})
 							.mapTo({
 								client,
 								query
-							})
-							.catch(() => Observable.empty());
+							});
 						})
 						.do(({
 							client,

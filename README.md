@@ -22,8 +22,8 @@ It doesn't take care to broadcast messages to right subscribers, it just broadca
 		}>;
 		constructor(schema: GraphQLSchema, concurrency: Number = Number.MAX_SAFE_INTEGER);
 		run(type: string, namespace: string, root: object = {}): void;
-		subscribe(type: string, namespace: string, variables: object = {}, context: object = {}): string (subscription hash);
-		unsubscribe(type: string, namespace: string, hash: string): void;
+		subscribe(namespace: string, type: string, variables: object = {}, context: object = {}): string (subscription hash);
+		unsubscribe(namespace: string, type: string, hash: string): void;
 
 ## Sample
 

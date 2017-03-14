@@ -103,4 +103,71 @@ It doesn't take care to broadcast messages to right subscribers, it just broadca
 
 		subscriptions.unsubscribe('addComment', 'myNamespace', subscriptionId);
 
+## Sample with Redis, Websocket, and ACL
+
+		const Acl = require('smallorange-acl');
+		const {
+			Redis
+		} = require('smallorange-redis-client');
+
+		const redis = new Redis();
+		const wss = StandaloneWebSocketServer();
+		const acl = new Acl({
+			push: {
+				commentAdded: {
+					public: {
+						type: 'conditionExpression',
+						expression: (params, auth) => {
+							return params.namespace === auth.namespace && params.root.id === auth.id;
+						}
+					}
+				}
+			}
+		});
+
+		const aclContexts = {
+			comentAdded: acl.get('push.commentAdded')
+		};
+
+		redis.onChannel('updateStream', ({
+			type,
+			namespace,
+			data
+		}) => {
+			graphqlSubscriptions.run(type, namespace, data);
+		});
+
+		graphqlSubscriptions.stream
+				.mergeMap(({
+					hash,
+					namespace,
+					query,
+					root,
+					type
+				}) => {
+					return Observable.from(wss.clients)
+						.mergeMap(client => {
+							return aclContexts.comentAdded({ // or aclContexts[type]
+								namespace,
+								root
+							}, client.auth)
+							.mapTo({
+								client,
+								query
+							})
+							.catch(() => Observable.empty());
+						})
+						.do(({
+							client,
+							query
+						}) => {
+							client.send(query);
+						});
+				})
+				.retryOn(err => 
+					err.delay(100)
+				)
+				.publish()
+				.connect();
+
 

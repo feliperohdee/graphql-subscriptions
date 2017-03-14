@@ -89,7 +89,7 @@ module.exports = class Subscriptions {
 		}
 
 		if (!subscriptionsByType.has(type, hash)) {
-			subscriptionsByType.set(type, hash, root => executor(root, context, variables));
+			subscriptionsByType.set(type, hash, root => executor(root, context, variables, operationName));
 		}
 
 		return hash;

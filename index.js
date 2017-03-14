@@ -31,6 +31,7 @@ module.exports = class Subscriptions {
 			}) => type && namespace)
 			.mergeMap(({
 				namespace,
+				context,
 				root,
 				type
 			}) => {
@@ -41,7 +42,7 @@ module.exports = class Subscriptions {
 					.mergeMap(([
 							hash,
 							executor
-						]) => executor(root)
+						]) => executor(root, context)
 						.map(query => ({
 							hash,
 							namespace,
@@ -53,15 +54,16 @@ module.exports = class Subscriptions {
 			.share();
 	}
 
-	run(namespace, type, root = {}) {
+	run(namespace, type, root = {}, context = {}) {
 		this.inbound.next({
 			type,
 			namespace,
-			root
+			root,
+			context
 		});
 	}
 
-	subscribe(namespace, type, query, variables = {}, context = {}) {
+	subscribe(namespace, type, query, variables = {}) {
 		if (!namespace || !type || !query) {
 			return;
 		}
@@ -89,7 +91,7 @@ module.exports = class Subscriptions {
 		}
 
 		if (!subscriptionsByType.has(type, hash)) {
-			subscriptionsByType.set(type, hash, root => executor(root, context, variables, operationName));
+			subscriptionsByType.set(type, hash, (root, context) => executor(root, context, variables, operationName));
 		}
 
 		return hash;

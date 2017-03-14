@@ -322,7 +322,8 @@ describe('index.js', () => {
             expect(graphqlSubscriptions.inbound.next).to.have.been.calledWith({
                 type,
                 namespace,
-                root: {}
+                root: {},
+                context: {}
             });
         });
 
@@ -336,7 +337,8 @@ describe('index.js', () => {
                 namespace,
                 root: {
                     root: 'root'
-                }
+                },
+                context: {}
             });
         });
     });

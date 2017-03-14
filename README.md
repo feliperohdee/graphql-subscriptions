@@ -148,7 +148,7 @@ It doesn't take care to broadcast messages to right subscribers, it just broadca
 					root,
 					type
 				}) => {
-					return Observable.from(wss.clients)
+					return Observable.from(wss.clientsByChannel(hash))
 						.mergeMap(client => {
 							return aclContexts.comentAdded({ // or aclContexts[type]
 								namespace,

@@ -117,8 +117,11 @@ It doesn't take care to broadcast messages to right subscribers, it just broadca
 				commentAdded: {
 					public: {
 						type: 'conditionExpression',
-						expression: (params, auth) => {
-							return params.namespace === auth.namespace && params.root.id === auth.id;
+						expression: ({
+								namespace,
+								root
+							}, auth) => {
+							return namespace === auth.namespace && root.id === auth.id;
 						}
 					}
 				}

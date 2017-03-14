@@ -70,7 +70,7 @@ It doesn't take care to broadcast messages to right subscribers, it just broadca
 		        }
 		    }`;
 
-		const subscriptionId = subscriptions.subscribe('addComment', 'myNamespace', query);
+		const subscriptionId = subscriptions.subscribe('myNamespace', 'addComment', query);
 
 		graphqlSubscriptions.stream
 			.take(1)
@@ -106,7 +106,9 @@ It doesn't take care to broadcast messages to right subscribers, it just broadca
 ## Sample with Redis, Websocket, and ACL
 
 		const Acl = require('smallorange-acl');
-		const Redis = require('smallorange-redis-client');
+		const {
+			Redis
+		} = require('smallorange-redis-client');
 
 		const redis = new Redis();
 		const wss = StandaloneWebSocketServer();

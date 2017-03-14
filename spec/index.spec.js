@@ -249,7 +249,7 @@ describe('index.js', () => {
                     .toArray()
                     .subscribe(response => {
                         expect(response).to.deep.equal([{
-                            hash: '1b3ba0c92a4934816488a5a7046a6e43',
+                            hash: 'user.1b3ba0c92a4934816488a5a7046a6e43',
                             namespace: 'namespace',
                             query: {
                                 data: {
@@ -265,7 +265,7 @@ describe('index.js', () => {
                             },
                             type: 'type'
                         }, {
-                            hash: '44ecdc2ef39fc8d30ee95e576945dc99',
+                            hash: 'user.44ecdc2ef39fc8d30ee95e576945dc99',
                             namespace: 'namespace',
                             query: {
                                 data: {
@@ -280,7 +280,7 @@ describe('index.js', () => {
                             },
                             type: 'type'
                         }, {
-                            hash: '44ecdc2ef39fc8d30ee95e576945dc99',
+                            hash: 'user.44ecdc2ef39fc8d30ee95e576945dc99',
                             namespace: 'namespace1',
                             query: {
                                 data: {
@@ -382,10 +382,10 @@ describe('index.js', () => {
                 age: 21
             });
 
-            expect(sub1).to.equal('f8fbde9910298bf4e3592fc3d76b240b');
-            expect(sub2).to.equal('f8fbde9910298bf4e3592fc3d76b240b');
-            expect(sub3).to.equal('cd204de2f608702a33c9b18db0b073dd');
-            expect(sub4).to.equal('96959aceab862f034080a17c9adce40c');
+            expect(sub1).to.equal('user.f8fbde9910298bf4e3592fc3d76b240b');
+            expect(sub2).to.equal('user.f8fbde9910298bf4e3592fc3d76b240b');
+            expect(sub3).to.equal('user.cd204de2f608702a33c9b18db0b073dd');
+            expect(sub4).to.equal('user.96959aceab862f034080a17c9adce40c');
             expect(sub1).to.equal(sub2);
             expect(sub2).not.to.equal(sub3);
             expect(sub3).not.to.equal(sub4);

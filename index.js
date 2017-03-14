@@ -76,7 +76,7 @@ module.exports = class Subscriptions {
 			data
 		] = this.extractQueryData(this.schema, executor.parsedQuery, variables);
 
-		const hash = md5(`${query}${JSON.stringify(data)}`);
+		const hash = `${data.subscriptionName}.${md5(`${query}${JSON.stringify(data)}`)}`;
 
 		if (!subscriptionsByType) {
 			subscriptionsByType = new MapMap();

@@ -4,7 +4,7 @@
 
 ## Wht it does
 
-This is a simple GraphQl subscriptions manager, it takes care to group similar queries which belongs to same type, namespace and same variables, runs with maximum concurrency (thank u rxjs again), and dispatch data via subject.
+This is a simple GraphQl subscriptions manager, it takes care to group similar queries which belongs to same type, namespace and same variables, runs with maximum concurrency (thank u rxjs again), and dispatch data via stream.
 
 ## Wht is doesn't
 

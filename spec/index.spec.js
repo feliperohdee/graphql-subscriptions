@@ -21,14 +21,14 @@ const expect = chai.expect;
 const type = 'type';
 const namespace = 'namespace';
 const queries = [
-    `subscription($name: String!, $age: Int, $city: String) {
+    `subscription changeUser($name: String!, $age: Int, $city: String) {
         user(name: $name, age: $age, city: $city) {
             name
             city
             age
         }
     }`,
-    `subscription($name: String!, $age: Int, $city: String) {
+    `subscription changeUser($name: String!, $age: Int, $city: String) {
         user(name: $name, age: $age, city: $city) {
             name
             age
@@ -249,7 +249,7 @@ describe('index.js', () => {
                     .toArray()
                     .subscribe(response => {
                         expect(response).to.deep.equal([{
-                            hash: 'user.1b3ba0c92a4934816488a5a7046a6e43',
+                            hash: 'changeUser.user.7b6ef33adb28f92c45fe049c0abe5bb4',
                             namespace: 'namespace',
                             query: {
                                 data: {
@@ -265,7 +265,7 @@ describe('index.js', () => {
                             },
                             type: 'type'
                         }, {
-                            hash: 'user.44ecdc2ef39fc8d30ee95e576945dc99',
+                            hash: 'changeUser.user.d06d13d3d599313bf5d454f98f80b930',
                             namespace: 'namespace',
                             query: {
                                 data: {
@@ -280,7 +280,7 @@ describe('index.js', () => {
                             },
                             type: 'type'
                         }, {
-                            hash: 'user.44ecdc2ef39fc8d30ee95e576945dc99',
+                            hash: 'changeUser.user.d06d13d3d599313bf5d454f98f80b930',
                             namespace: 'namespace1',
                             query: {
                                 data: {
@@ -365,6 +365,28 @@ describe('index.js', () => {
             expect(graphqlSubscriptions.extractQueryData).not.to.have.been.called;
         });
 
+        it('should throw if no operationName', () => {
+            expect(() => graphqlSubscriptions.subscribe(namespace, type, `subscription {user{name}}`)).to.throw('GraphQLError: Small Orange subscriptions must have an operationName');
+        });
+
+        it('should throw if multiple roots', () => {
+            expect(() => graphqlSubscriptions.subscribe(namespace, type, `subscription changeUser{user{name} user{name}}`)).to.throw('GraphQLError: Subscription "changeUser" must have only one field.');
+        });
+
+        it('should throw if fragments', () => {
+            expect(() => graphqlSubscriptions.subscribe(namespace, type, `
+                subscription changeUser {
+                    ... userInfo
+                }
+
+                fragment userInfo on SubscriptionType {
+                    user {
+                        name
+                    }
+                }
+            `)).to.throw('GraphQLError: Small Orange subscriptions do not support fragments on the root field');
+        });
+
         it('should return hash based on query and variables', () => {
             const sub1 = graphqlSubscriptions.subscribe(namespace, type, queries[0], {
                 age: 20
@@ -382,10 +404,10 @@ describe('index.js', () => {
                 age: 21
             });
 
-            expect(sub1).to.equal('user.f8fbde9910298bf4e3592fc3d76b240b');
-            expect(sub2).to.equal('user.f8fbde9910298bf4e3592fc3d76b240b');
-            expect(sub3).to.equal('user.cd204de2f608702a33c9b18db0b073dd');
-            expect(sub4).to.equal('user.96959aceab862f034080a17c9adce40c');
+            expect(sub1).to.equal('changeUser.user.5d82f7a66a54c0633449fe47496db1cc');
+            expect(sub2).to.equal('changeUser.user.5d82f7a66a54c0633449fe47496db1cc');
+            expect(sub3).to.equal('changeUser.user.7b3d5c168820bf5102901095ba80aa81');
+            expect(sub4).to.equal('changeUser.user.5d5bd2d3822a1f2c8dad38fb94340d0a');
             expect(sub1).to.equal(sub2);
             expect(sub2).not.to.equal(sub3);
             expect(sub3).not.to.equal(sub4);
@@ -543,8 +565,9 @@ describe('index.js', () => {
                     age: 20,
                     city: 'San Francisco'
                 },
-                subscriptionAlias: null,
-                subscriptionName: 'user'
+                operationName: 'changeUser',
+                rootAlias: null,
+                rootName: 'user'
             }]);
         });
 

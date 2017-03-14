@@ -3,19 +3,17 @@ const {
     GraphQLError,
 } = require('graphql');
 
-const tooManySubscriptionFieldsError = subscriptionName => {
-    if (subscriptionName) {
-        return `Subscription "${subscriptionName}" must have only one field.`;
-    }
-
-    return `Subscription must have only one field.`;
-}
-
 exports.subscriptionHasSingleRootField = context => {
     return {
         OperationDefinition: node => {
             const operationName = node.name ? node.name.value : '';
             let numFields = 0;
+
+            if (!operationName) {
+                context.reportError(new GraphQLError('Small Orange subscriptions must have an operationName', [
+                    node
+                ]));
+            }
 
             node.selectionSet.selections
                 .forEach(selection => {
@@ -29,7 +27,7 @@ exports.subscriptionHasSingleRootField = context => {
                 });
 
             if (numFields > 1) {
-                context.reportError(new GraphQLError(tooManySubscriptionFieldsError(operationName), [
+                context.reportError(new GraphQLError(`Subscription "${operationName}" must have only one field.`, [
                     node
                 ]));
             }

@@ -76,7 +76,12 @@ module.exports = class Subscriptions {
 			data
 		] = this.extractQueryData(this.schema, executor.parsedQuery, variables);
 
-		const hash = `${data.subscriptionName}.${md5(`${query}${JSON.stringify(data)}`)}`;
+		const {
+			operationName,
+			rootName
+		} = data;
+
+		const hash = `${operationName}.${rootName}.${md5(`${query}${JSON.stringify(data)}`)}`;
 
 		if (!subscriptionsByType) {
 			subscriptionsByType = new MapMap();
@@ -118,7 +123,8 @@ module.exports = class Subscriptions {
 					if(!subcription){
 						return reduction;
 					}
-
+					
+					const operationName = definition.name ? definition.name.value : null;
 					const fields = subcription
 						.getFields();
 
@@ -127,14 +133,14 @@ module.exports = class Subscriptions {
 							alias,
 							name
 						} = rootField;
-
-						const subscriptionAlias = alias ? alias.value : null;
-						const subscriptionName = name.value;
+						
+						const rootAlias = alias ? alias.value : null;
+						const rootName = name.value;
 						const args = rootField.arguments
 							.reduce((reduction, arg) => {
 								const [
 									argDefinition
-								] = fields[subscriptionName].args
+								] = fields[rootName].args
 									.filter(argDef => argDef.name === arg.name.value);
 
 								reduction[argDefinition.name] = valueFromAST(arg.value, argDefinition.type, variables);
@@ -143,8 +149,9 @@ module.exports = class Subscriptions {
 							}, {});
 
 						return {
-							subscriptionAlias,
-							subscriptionName,
+							operationName,
+							rootAlias,
+							rootName,
 							args
 						};
 					});

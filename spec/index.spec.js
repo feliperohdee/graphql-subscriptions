@@ -317,7 +317,7 @@ describe('index.js', () => {
             graphqlSubscriptions.inbound.next.restore();
         });
 
-        it('should call inbound.next with default root', () => {
+        it('should call inbound.next with default root and context', () => {
             graphqlSubscriptions.run(namespace, type);
             expect(graphqlSubscriptions.inbound.next).to.have.been.calledWith({
                 type,
@@ -327,9 +327,11 @@ describe('index.js', () => {
             });
         });
 
-        it('should call inbound.next with custom root', () => {
+        it('should call inbound.next with custom root ans context', () => {
             graphqlSubscriptions.run(namespace, type, {
                 root: 'root'
+            }, {
+                context: 'context'
             });
 
             expect(graphqlSubscriptions.inbound.next).to.have.been.calledWith({
@@ -338,7 +340,9 @@ describe('index.js', () => {
                 root: {
                     root: 'root'
                 },
-                context: {}
+                context: {
+                    context: 'context'
+                }
             });
         });
     });

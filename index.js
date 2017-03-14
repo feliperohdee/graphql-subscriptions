@@ -2,38 +2,89 @@ const MapMap = require('map-map-2');
 const lazyExecutor = require('smallorange-graphql-lazy-executor');
 const md5 = require('md5');
 const {
-	Observable
+	Observable,
+	Subject
 } = require('rxjs');
 const {
 	valueFromAST
 } = require('graphql');
 
+const {
+	subscriptionHasSingleRootField
+} = require('./customValidators');
+
 module.exports = class Subscriptions {
-	constructor(schema, concurrency = 9) {
+	constructor(schema, concurrency = Number.MAX_SAFE_INTEGER) {
+		if(!schema){
+			throw new Error('No GraphQL schema provided');
+		}
+
 		this.schema = schema;
 		this.concurrency = concurrency;
-		this.subscriptions = new Map();
+		this.subscriptionsByType = new Map();
+
+		this.inbound = new Subject();
+		this.stream = this.inbound
+			.filter(({
+				namespace,
+				type
+			}) => type && namespace)
+			.mergeMap(({
+				namespace,
+				root,
+				type
+			}) => {
+				const subscriptions = this.subscriptionsByType.get(type);
+				const queries = subscriptions ? subscriptions.get(namespace) : null;
+
+				return Observable.from(queries || [])
+					.mergeMap(([
+							hash,
+							executor
+						]) => executor(root)
+						.map(query => ({
+							hash,
+							namespace,
+							query,
+							root,
+							type
+						})), null, this.concurrency)
+			})
+			.share();
 	}
 
-	subscribe(type, namespace, query, context = {}, variables = {}) {
+	run(type, namespace, root = {}) {
+		this.inbound.next({
+			type,
+			namespace,
+			root
+		});
+	}
+
+	subscribe(type, namespace, query, variables = {}, context = {}) {
 		if (!type || !namespace || !query) {
 			return;
 		}
 
-		const executor = lazyExecutor(this.schema, query, {}, variables);
-		const data = this.extractQueryData(executor.parsedQuery);
-		const hash = md5(`${query}${JSON.stringify(data)}`);
-		let subscriptionType = this.subscriptions.get(type);
+		let subscriptions = this.subscriptionsByType.get(type);
 
-		if (!subscriptionType) {
-			subscriptionType = new MapMap();
-			this.subscriptions.set(type, subscriptionType);
+		const executor = lazyExecutor(this.schema, query, [
+			subscriptionHasSingleRootField
+		]);
+
+		const [
+			data
+		] = this.extractQueryData(this.schema, executor.parsedQuery, variables);
+
+		const hash = md5(`${query}${JSON.stringify(data)}`);
+
+		if (!subscriptions) {
+			subscriptions = new MapMap();
+			this.subscriptionsByType.set(type, subscriptions);
 		}
 
-		if (!subscriptionType.has(namespace, hash)) {
-			subscriptionType.set(namespace, hash, root => {
-				return executor(root, context, variables);
-			});
+		if (!subscriptions.has(namespace, hash)) {
+			subscriptions.set(namespace, hash, root => executor(root, context, variables));
 		}
 
 		return hash;
@@ -44,78 +95,60 @@ module.exports = class Subscriptions {
 			return;
 		}
 
-		const subscriptionType = this.subscriptions.get(type);
+		const subscriptions = this.subscriptionsByType.get(type);
 
-		if (!subscriptionType) {
+		if (!subscriptions) {
 			return;
 		}
 
-		subscriptionType.delete(namespace, hash);
+		subscriptions.delete(namespace, hash);
 
-		if (!subscriptionType.size()) {
-			this.subscriptions.delete(type)
+		if (!subscriptions.size()) {
+			this.subscriptionsByType.delete(type)
 		}
 	}
 
-	run(type, namespace, root = {}) {
-		if (!type || !namespace) {
-			return;
-		}
+	extractQueryData(schema, parsedQuery, variables = {}) {
+		return parsedQuery.definitions
+			.reduce((reduction, definition) => {
+				if (definition.kind === 'OperationDefinition') {
+					const rootFields = definition.selectionSet.selections;
+					const subcription = schema.getSubscriptionType();
 
-		const subscriptionType = this.subscriptions.get(type);
-
-		if (!subscriptionType) {
-			return;
-		}
-
-		const queries = subscriptionType.get(namespace) || [];
-
-		return Observable.from(queries)
-			.mergeMap(([
-				key,
-				query
-			]) => {
-				return query(root)
-					.map(response => ({
-						key,
-						response,
-						root
-					}));
-			}, null, this.concurrency);
-	}
-
-	extractQueryData(parsedQuery, variables) {
-		return parsedQuery.definitions.reduce((reduction, definition) => {
-			if (definition.kind === 'OperationDefinition') {
-				const rootFields = definition.selectionSet.selections;
-				const fields = this.schema.getSubscriptionType()
-					.getFields();
-
-				return rootFields.map(rootField => {
-					const {
-						alias,
-						name
-					} = rootField;
-
-					const subscriptionAlias = alias ? alias.value : null;
-					const subscriptionName = name.value;
-					const args = rootField.arguments.reduce((reduction, arg) => {
-						const [
-							argDefinition
-						] = fields[subscriptionName].args.filter(argDef => argDef.name === arg.name.value);
-
-						reduction[argDefinition.name] = valueFromAST(arg.value, argDefinition.type, variables);
-
+					if(!subcription){
 						return reduction;
-					}, {});
+					}
 
-					return {
-						subscriptionAlias,
-						subscriptionName,
-						args
-					};
-				});
-			}
-		}, null);
+					const fields = subcription
+						.getFields();
+
+					return rootFields.map(rootField => {
+						const {
+							alias,
+							name
+						} = rootField;
+
+						const subscriptionAlias = alias ? alias.value : null;
+						const subscriptionName = name.value;
+						const args = rootField.arguments
+							.reduce((reduction, arg) => {
+								const [
+									argDefinition
+								] = fields[subscriptionName].args
+									.filter(argDef => argDef.name === arg.name.value);
+
+								reduction[argDefinition.name] = valueFromAST(arg.value, argDefinition.type, variables);
+
+								return reduction;
+							}, {});
+
+						return {
+							subscriptionAlias,
+							subscriptionName,
+							args
+						};
+					});
+				}
+			}, null);
 	}
 }

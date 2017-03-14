@@ -15,10 +15,11 @@
     "map-map-2": "^1.0.0",
     "md5": "^2.2.1",
     "rxjs": "^5.2.0",
-    "smallorange-graphql-lazy-executor": "^1.0.7"
+    "smallorange-graphql-lazy-executor": "^1.0.8"
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "istanbul": "^0.4.5",
     "mocha": "^3.2.0",
     "sinon": "^1.17.7",
     "sinon-chai": "^2.8.0"

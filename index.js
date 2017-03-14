@@ -21,7 +21,7 @@ module.exports = class Subscriptions {
 
 		this.schema = schema;
 		this.concurrency = concurrency;
-		this.subscriptionsByType = new Map();
+		this.subscriptionsByNamespace = new Map();
 
 		this.inbound = new Subject();
 		this.stream = this.inbound
@@ -34,8 +34,8 @@ module.exports = class Subscriptions {
 				root,
 				type
 			}) => {
-				const subscriptions = this.subscriptionsByType.get(type);
-				const queries = subscriptions ? subscriptions.get(namespace) : null;
+				const subscriptionsByType = this.subscriptionsByNamespace.get(namespace);
+				const queries = subscriptionsByType ? subscriptionsByType.get(type) : null;
 
 				return Observable.from(queries || [])
 					.mergeMap(([
@@ -53,7 +53,7 @@ module.exports = class Subscriptions {
 			.share();
 	}
 
-	run(type, namespace, root = {}) {
+	run(namespace, type, root = {}) {
 		this.inbound.next({
 			type,
 			namespace,
@@ -61,12 +61,12 @@ module.exports = class Subscriptions {
 		});
 	}
 
-	subscribe(type, namespace, query, variables = {}, context = {}) {
-		if (!type || !namespace || !query) {
+	subscribe(namespace, type, query, variables = {}, context = {}) {
+		if (!namespace || !type || !query) {
 			return;
 		}
 
-		let subscriptions = this.subscriptionsByType.get(type);
+		let subscriptionsByType = this.subscriptionsByNamespace.get(namespace);
 
 		const executor = lazyExecutor(this.schema, query, [
 			subscriptionHasSingleRootField
@@ -78,33 +78,33 @@ module.exports = class Subscriptions {
 
 		const hash = md5(`${query}${JSON.stringify(data)}`);
 
-		if (!subscriptions) {
-			subscriptions = new MapMap();
-			this.subscriptionsByType.set(type, subscriptions);
+		if (!subscriptionsByType) {
+			subscriptionsByType = new MapMap();
+			this.subscriptionsByNamespace.set(namespace, subscriptionsByType);
 		}
 
-		if (!subscriptions.has(namespace, hash)) {
-			subscriptions.set(namespace, hash, root => executor(root, context, variables));
+		if (!subscriptionsByType.has(type, hash)) {
+			subscriptionsByType.set(type, hash, root => executor(root, context, variables));
 		}
 
 		return hash;
 	}
 
-	unsubscribe(type, namespace, hash) {
-		if (!type || !namespace || !hash) {
+	unsubscribe(namespace, type, hash) {
+		if (!namespace || !type || !hash) {
 			return;
 		}
 
-		const subscriptions = this.subscriptionsByType.get(type);
+		const subscriptionsByType = this.subscriptionsByNamespace.get(namespace);
 
-		if (!subscriptions) {
+		if (!subscriptionsByType) {
 			return;
 		}
 
-		subscriptions.delete(namespace, hash);
+		subscriptionsByType.delete(type, hash);
 
-		if (!subscriptions.size()) {
-			this.subscriptionsByType.delete(type)
+		if (!subscriptionsByType.size()) {
+			this.subscriptionsByNamespace.delete(namespace);
 		}
 	}
 

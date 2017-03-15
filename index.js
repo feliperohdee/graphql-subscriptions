@@ -81,7 +81,7 @@ module.exports = class Subscriptions {
 			return;
 		}
 
-		if (typeof subscriber !== 'object') {
+		if (!_.isObject(subscriber)) {
 			throw new Error('Subscriber must be an object');
 		}
 
@@ -139,7 +139,7 @@ module.exports = class Subscriptions {
 			return;
 		}
 
-		if (typeof subscriber !== 'object') {
+		if (!_.isObject(subscriber)) {
 			throw new Error('Subscriber must be an object');
 		}
 		

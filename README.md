@@ -12,6 +12,10 @@ It doesn't take care subscribe to your pub/sub mechanism, you should do it by yo
 
 It doesn't take care to broadcast messages to right subscribers, it just broadcast, at this way, you can plug in your custom ACL implementation to keep with a single point of truthness, if you don't have one you can use our beloved https://github.com/feliperohdee/smallorange-acl and be happy.
 
+## Important
+
+Subscribers are objects that you intend to send messages afterwards, this lib takes care to manage internal subscriptions state, but once one subscriber is removed (eg. a WebSocket client's close event) you should call unsubscribe(subscriber) manually to remove remove subscribed queries for there;
+
 ## API
 		stream: Observable<{
 			args: object,
@@ -21,12 +25,13 @@ It doesn't take care to broadcast messages to right subscribers, it just broadca
 			query: object,
 			root: object,
 			rootName: string,
+			subscribers: Set,
 			type: string
 		}>;
 		constructor(schema: GraphQLSchema, concurrency: Number = Number.MAX_SAFE_INTEGER);
-		run(namespace: string, type: string, root: object = {}, context: object = {}): void;
-		subscribe(namespace: string, type: string, variables: object = {}): string (subscription hash);
-		unsubscribe(namespace: string, type: string, hash: string): void;
+		run(namespace: string, type: string, root?: object = {}, context?: object = {}): void;
+		subscribe(subscriber: object, namespace: string, type: string, variables?: object = {}): string (subscription hash);
+		unsubscribe(subscriber: object, namespace?: string, type?: string, hash?: string): void;
 
 ## Sample
 
@@ -72,23 +77,38 @@ It doesn't take care to broadcast messages to right subscribers, it just broadca
 		            age
 		        }
 		    }`;
-
-		const subscriptionHash = subscriptions.subscribe('myNamespace', 'addComment', query);
+		
+		const pseudoSubscriber = {
+			send(data){
+				// send
+			}
+		};
+		const subscriptionHash = subscriptions.subscribe(pseudoSubscriber, 'myNamespace', 'addComment', query);
 
 		graphqlSubscriptions.stream
-			.take(1)
-		    .toArray()
-		    .subscribe(console.log);
+		    .subscribe(({
+		    		operationName,
+		    		query,
+		    		root,
+		    		subscribers,
+		    		type
+		    	}) => {
+		    		subscribers.forEach(subscriber => subscriber.send({
+		    			operationName,
+		    			query,
+		    			root,
+		    			type
+		    		}));
+	    		});
 
-		   graphqlSubscriptions.run(namespace, type, {
-		        age: 20
-		    });
+	   graphqlSubscriptions.run(namespace, type, {
+	        age: 20
+	    });
 
-		// is gonna print
+		// is gonna send to all subscribers
 		//
-		// [{
-		//     hash: '1b3ba0c92a4934816488a5a7046a6e43',
-		//     namespace: 'namespace',
+		// {
+		//	   operationName: 'addComment',
 		//     query: {
 		//         data: {
 		//             user: {
@@ -102,9 +122,9 @@ It doesn't take care to broadcast messages to right subscribers, it just broadca
 		//         age: 20
 		//     },
 		//     type: 'type'
-		// }]
+		// }
 
-		subscriptions.unsubscribe('addComment', 'myNamespace', subscriptionHash);
+		subscriptions.unsubscribe(pseudoSubscriber, 'addComment', 'myNamespace', subscriptionHash);
 
 ## Sample with Redis, Websocket, and ACL
 
@@ -149,26 +169,27 @@ It doesn't take care to broadcast messages to right subscribers, it just broadca
 					namespace,
 					query,
 					root,
+					subscribers,
 					type
 				}) => {
-					return Observable.from(wss.clientsByChannel(hash))
-						.mergeMap(client => {
+					return Observable.from(subscribers)
+						.mergeMap(subscriber => {
 							return aclContexts.comentAdded({ // or aclContexts[type]
 								namespace,
 								root
-							}, client.auth, {
+							}, subscriber.auth, {
 								rejectSilently: true
 							})
 							.mapTo({
-								client,
+								subscriber,
 								query
 							});
 						})
 						.do(({
-							client,
+							subscriber,
 							query
 						}) => {
-							client.send(query);
+							subscriber.send(query);
 						});
 				})
 				.retryOn(err => 

@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const chai = require('chai');
 const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
@@ -108,7 +109,7 @@ describe('index.js', () => {
         });
 
         it('should feed schema', () => {
-            expect(graphqlSubscriptions.schema).to.be.defined;
+            expect(graphqlSubscriptions.schema).to.be.an('object');
         });
 
         it('should feed default concurrency', () => {
@@ -121,18 +122,18 @@ describe('index.js', () => {
         });
 
         it('should feed stream', () => {
-            expect(graphqlSubscriptions.stream).to.be.defined;
+            expect(graphqlSubscriptions.stream).to.be.an('object');
         });
 
         describe('stream', () => {
             it('should do nothing if no type', done => {
                 const result = [];
 
-                graphqlSubscriptions.subscribe(namespace, type, queries[0], {
+                graphqlSubscriptions.subscribe({}, namespace, type, queries[0], {
                     name: 'Rohde'
                 });
 
-                graphqlSubscriptions.subscribe(namespace, type, queries[1], {
+                graphqlSubscriptions.subscribe({}, namespace, type, queries[1], {
                     name: 'Rohde'
                 });
 
@@ -149,11 +150,11 @@ describe('index.js', () => {
             it('should do nothing if no namespace', done => {
                 const result = [];
 
-                graphqlSubscriptions.subscribe(namespace, type, queries[0], {
+                graphqlSubscriptions.subscribe({}, namespace, type, queries[0], {
                     name: 'Rohde'
                 });
 
-                graphqlSubscriptions.subscribe(namespace, type, queries[1], {
+                graphqlSubscriptions.subscribe({}, namespace, type, queries[1], {
                     name: 'Rohde'
                 });
 
@@ -170,11 +171,11 @@ describe('index.js', () => {
             it('should do nothing if type not found', done => {
                 const result = [];
 
-                graphqlSubscriptions.subscribe(namespace, type, queries[0], {
+                graphqlSubscriptions.subscribe({}, namespace, type, queries[0], {
                     name: 'Rohde'
                 });
 
-                graphqlSubscriptions.subscribe(namespace, type, queries[1], {
+                graphqlSubscriptions.subscribe({}, namespace, type, queries[1], {
                     name: 'Rohde'
                 });
 
@@ -191,11 +192,11 @@ describe('index.js', () => {
             it('should do nothing if namespace not found', done => {
                 const result = [];
 
-                graphqlSubscriptions.subscribe(namespace, type, queries[0], {
+                graphqlSubscriptions.subscribe({}, namespace, type, queries[0], {
                     name: 'Rohde'
                 });
 
-                graphqlSubscriptions.subscribe(namespace, type, queries[1], {
+                graphqlSubscriptions.subscribe({}, namespace, type, queries[1], {
                     name: 'Rohde'
                 });
 
@@ -210,11 +211,11 @@ describe('index.js', () => {
             });
 
             it('should handle query error', done => {
-                graphqlSubscriptions.subscribe(namespace, type, queries[0], {
+                graphqlSubscriptions.subscribe({}, namespace, type, queries[0], {
                     name: 'Rohde'
                 });
 
-                graphqlSubscriptions.subscribe(namespace, type, queries[1]);
+                graphqlSubscriptions.subscribe({}, namespace, type, queries[1]);
 
                 graphqlSubscriptions.stream
                     .subscribe(null, err => {
@@ -225,24 +226,51 @@ describe('index.js', () => {
                 graphqlSubscriptions.run(namespace, type);
             });
 
-            it('should run queries', done => {
+            it('should handle no queries', done => {
                 const result = [];
 
-                graphqlSubscriptions.subscribe(namespace, type, queries[0], {
+                graphqlSubscriptions.subscribe({}, namespace, type, queries[0], {
                     name: 'Rohde'
                 });
 
-                graphqlSubscriptions.subscribe(namespace, type, queries[1], {
+                graphqlSubscriptions.subscribe({}, namespace, type, queries[1]);
+
+                graphqlSubscriptions.stream
+                    .timeoutWith(10, Observable.empty())
+                    .subscribe(result.push.bind(result), null, () => {
+                        expect(result).to.deep.equal([]);
+                        done();
+                    });
+
+                graphqlSubscriptions.run(namespace, type + 1);
+            });
+
+            it('should run queries', done => {
+                const ref1 = {};
+                const ref2 = {};
+                const ref3 = {};
+                const ref4 = {};
+
+                const sub1 = graphqlSubscriptions.subscribe(ref1, namespace, type, queries[0], {
                     name: 'Rohde'
                 });
 
-                graphqlSubscriptions.subscribe(namespace + 1, type, queries[1], {
+                const sub2 = graphqlSubscriptions.subscribe(ref2, namespace, type, queries[1], {
                     name: 'Rohde'
                 });
 
-                graphqlSubscriptions.subscribe(namespace, type + 1, queries[1], {
+                const sub3 = graphqlSubscriptions.subscribe(ref3, namespace + 1, type, queries[1], {
                     name: 'Rohde'
                 });
+
+                const sub4 = graphqlSubscriptions.subscribe(ref4, namespace, type + 1, queries[1], {
+                    name: 'Rohde'
+                });
+
+                const sub1Refs = _.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub1}.subscribers`);
+                const sub2Refs = _.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub2}.subscribers`);
+                const sub3Refs = _.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub3}.subscribers`);
+                const sub4Refs = _.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub4}.subscribers`);
 
                 graphqlSubscriptions.stream
                     .take(3)
@@ -270,6 +298,7 @@ describe('index.js', () => {
                                 age: 20
                             },
                             rootName: 'user',
+                            subscribers: sub1Refs,
                             type: 'type'
                         }, {
                             args: {
@@ -292,6 +321,7 @@ describe('index.js', () => {
                                 age: 20
                             },
                             rootName: 'user',
+                            subscribers: sub2Refs,
                             type: 'type'
                         }, {
                             args: {
@@ -314,6 +344,7 @@ describe('index.js', () => {
                                 age: 20
                             },
                             rootName: 'user',
+                            subscribers: sub3Refs,
                             type: 'type'
                         }]);
                     }, null, done);
@@ -377,33 +408,42 @@ describe('index.js', () => {
             graphqlSubscriptions.extractQueryData.restore();
         });
 
-        it('should do nothing if no namespace', () => {
+        it('should do nothing if no subscriber', () => {
             expect(graphqlSubscriptions.subscribe()).to.be.undefined;
             expect(graphqlSubscriptions.extractQueryData).not.to.have.been.called;
         });
 
+        it('should do nothing if no namespace', () => {
+            expect(graphqlSubscriptions.subscribe({})).to.be.undefined;
+            expect(graphqlSubscriptions.extractQueryData).not.to.have.been.called;
+        });
+
         it('should do nothing if no type', () => {
-            expect(graphqlSubscriptions.subscribe(namespace)).to.be.undefined;
+            expect(graphqlSubscriptions.subscribe({}, namespace)).to.be.undefined;
             expect(graphqlSubscriptions.extractQueryData).not.to.have.been.called;
         });
 
         it('should do nothing if no query', () => {
-            expect(graphqlSubscriptions.subscribe(namespace, type)).to.be.undefined;
+            expect(graphqlSubscriptions.subscribe({}, namespace, type)).to.be.undefined;
             expect(graphqlSubscriptions.extractQueryData).not.to.have.been.called;
         });
 
+        it('should throw if subscriber not object', () => {
+            expect(() => graphqlSubscriptions.subscribe('string', namespace, type, `subscription {user{name}}`)).to.throw('Subscriber must be an object');
+        });
+
         it('should throw if no operationName', () => {
-            expect(() => graphqlSubscriptions.subscribe(namespace, type, `subscription {user{name}}`)).to.throw('GraphQLError: Small Orange subscriptions must have an operationName');
+            expect(() => graphqlSubscriptions.subscribe({}, namespace, type, `subscription {user{name}}`)).to.throw('GraphQLError: Small Orange subscriptions must have an operationName');
         });
 
         it('should throw if multiple roots', () => {
-            expect(() => graphqlSubscriptions.subscribe(namespace, type, `subscription changeUser{user{name} user{name}}`)).to.throw('GraphQLError: Subscription "changeUser" must have only one field.');
+            expect(() => graphqlSubscriptions.subscribe({}, namespace, type, `subscription changeUser{user{name} user{name}}`)).to.throw('GraphQLError: Subscription "changeUser" must have only one field.');
         });
 
         it('should throw if fragments', () => {
-            expect(() => graphqlSubscriptions.subscribe(namespace, type, `
+            expect(() => graphqlSubscriptions.subscribe({}, namespace, type, `
                 subscription changeUser {
-                    ... userInfo
+                    ...userInfo
                 }
 
                 fragment userInfo on SubscriptionType {
@@ -415,19 +455,19 @@ describe('index.js', () => {
         });
 
         it('should return hash based on query and variables', () => {
-            const sub1 = graphqlSubscriptions.subscribe(namespace, type, queries[0], {
+            const sub1 = graphqlSubscriptions.subscribe({}, namespace, type, queries[0], {
                 age: 20
             });
 
-            const sub2 = graphqlSubscriptions.subscribe(namespace, type, queries[0], {
+            const sub2 = graphqlSubscriptions.subscribe({}, namespace, type, queries[0], {
                 age: 20
             });
 
-            const sub3 = graphqlSubscriptions.subscribe(namespace, type, queries[1], {
+            const sub3 = graphqlSubscriptions.subscribe({}, namespace, type, queries[1], {
                 age: 20
             });
 
-            const sub4 = graphqlSubscriptions.subscribe(namespace, type, queries[1], {
+            const sub4 = graphqlSubscriptions.subscribe({}, namespace, type, queries[1], {
                 age: 21
             });
 
@@ -440,140 +480,168 @@ describe('index.js', () => {
             expect(sub3).not.to.equal(sub4);
         });
 
-        it('should create subscriptionsByNamespace', () => {
-            const sub1 = graphqlSubscriptions.subscribe(namespace, type, queries[0], {
+        it('should create subscriptions', () => {
+            const sub1 = graphqlSubscriptions.subscribe({}, namespace, type, queries[0], {
                 age: 20
             });
 
-            expect(graphqlSubscriptions.subscriptionsByNamespace.get(namespace)).to.be.a('Map');
-            expect(graphqlSubscriptions.subscriptionsByNamespace.get(namespace).get(type).get(sub1)).to.be.a('function');
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub1}.executor`)).to.be.a('function');
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub1}.subscribers`)).to.be.a('Set');
         });
 
-        it('should group subscriptionsByNamespace with same namespaces', () => {
-            const sub1 = graphqlSubscriptions.subscribe(namespace, type, queries[0], {
-                age: 20
-            });
+        it('should add subscribers', () => {
+            const subscribe1 = ref => graphqlSubscriptions.subscribe(ref, namespace, type, queries[0]);
+            const subscribe2 = ref => graphqlSubscriptions.subscribe(ref, namespace, type, queries[1]);
 
-            const sub2 = graphqlSubscriptions.subscribe(namespace + 1, type, queries[0], {
-                age: 21
-            });
+            const ref1 = {};
+            const sub1 = subscribe1(ref1);
 
-            const sub3 = graphqlSubscriptions.subscribe(namespace, type, queries[0], {
-                age: 22
-            });
+            const ref2 = {};
+            const sub2 = subscribe1(ref2);
+            const sub2_1 = subscribe2(ref2);
 
-            expect(graphqlSubscriptions.subscriptionsByNamespace.get(namespace).get(type).get(sub1)).to.be.a('function');
-            expect(graphqlSubscriptions.subscriptionsByNamespace.get(namespace + 1).get(type).get(sub2)).to.be.a('function');
-            expect(graphqlSubscriptions.subscriptionsByNamespace.get(namespace).get(type).get(sub3)).to.be.a('function');
-            expect(graphqlSubscriptions.subscriptionsByNamespace.size).to.equal(2);
+            const ref3 = {};
+            const sub3 = subscribe2(ref3);
+
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub1}.subscribers`).size).to.equal(2);
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub2}.subscribers`).size).to.equal(2);
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub3}.subscribers`).size).to.equal(2);
+
+            expect(_.get(ref1, graphqlSubscriptions.subscribedSymbol).has(`${namespace}.${type}.${sub1}`)).to.be.true;
+            expect(_.get(ref1, graphqlSubscriptions.subscribedSymbol).size).to.equal(1);
+            expect(_.get(ref2, graphqlSubscriptions.subscribedSymbol).has(`${namespace}.${type}.${sub2}`)).to.be.true;
+            expect(_.get(ref2, graphqlSubscriptions.subscribedSymbol).has(`${namespace}.${type}.${sub2_1}`)).to.be.true;
+            expect(_.get(ref2, graphqlSubscriptions.subscribedSymbol).size).to.equal(2);
+            expect(_.get(ref3, graphqlSubscriptions.subscribedSymbol).has(`${namespace}.${type}.${sub3}`)).to.be.true;
+            expect(_.get(ref3, graphqlSubscriptions.subscribedSymbol).size).to.equal(1);
         });
 
-        it('should group subscriptionsByNamespace with same types', () => {
-            const sub1 = graphqlSubscriptions.subscribe(namespace, type, queries[0], {
+        it('should reuse shallow identic queries', () => {
+            const sub1 = graphqlSubscriptions.subscribe({}, namespace, type, queries[0], {
                 age: 20
             });
 
-            const sub2 = graphqlSubscriptions.subscribe(namespace, type + 1, queries[0], {
-                age: 21
+            const sub2 = graphqlSubscriptions.subscribe({}, namespace, type, queries[0], {
+                age: 20
             });
 
-            const sub3 = graphqlSubscriptions.subscribe(namespace, type, queries[0], {
-                age: 22
-            });
-
-            expect(graphqlSubscriptions.subscriptionsByNamespace.get(namespace).get(type).get(sub1)).to.be.a('function');
-            expect(graphqlSubscriptions.subscriptionsByNamespace.get(namespace).get(type + 1).get(sub2)).to.be.a('function');
-            expect(graphqlSubscriptions.subscriptionsByNamespace.get(namespace).get(type).get(sub3)).to.be.a('function');
-            expect(graphqlSubscriptions.subscriptionsByNamespace.get(namespace).size()).to.equal(2);
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.equal(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub2}`));
+            expect(_.size(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}`))).to.equal(1);
         });
 
-        it('should group same queries with same variables', () => {
-            const sub1 = graphqlSubscriptions.subscribe(namespace, type, queries[0], {
+        it('should not reuse shallow different queries', () => {
+            const sub1 = graphqlSubscriptions.subscribe({}, namespace, type, queries[0], {
                 age: 20
             });
 
-            const sub2 = graphqlSubscriptions.subscribe(namespace, type, queries[0], {
+            const sub2 = graphqlSubscriptions.subscribe({}, namespace, type, queries[1], {
                 age: 20
             });
 
-            const sub3 = graphqlSubscriptions.subscribe(namespace, type, queries[0], {
-                age: 20
-            });
-
-            expect(graphqlSubscriptions.subscriptionsByNamespace.get(namespace).get(type).get(sub1)).to.equal(graphqlSubscriptions.subscriptionsByNamespace.get(namespace).get(type).get(sub3));
-            expect(graphqlSubscriptions.subscriptionsByNamespace.get(namespace).get(type).size).to.equal(1);
-        });
-
-        it('should not group different queries', () => {
-            const sub1 = graphqlSubscriptions.subscribe(namespace, type, queries[0], {
-                age: 20
-            });
-
-            const sub2 = graphqlSubscriptions.subscribe(namespace, type, queries[1], {
-                age: 20
-            });
-
-            expect(graphqlSubscriptions.subscriptionsByNamespace.get(namespace).get(type).size).to.equal(2);
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).not.to.equal(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub2}`));
+            expect(_.size(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}`))).to.equal(2);
         });
     });
 
     describe('unsubscribe', () => {
+        const subscribe1 = ref => graphqlSubscriptions.subscribe(ref, namespace, type, queries[0]);
+        const subscribe2 = ref => graphqlSubscriptions.subscribe(ref, namespace, type, queries[1]);
+        let ref1;
         let sub1;
+        let ref2;
         let sub2;
-        let sub3;
-        let sub4;
+        let sub2_1;
 
         beforeEach(() => {
-            sub1 = graphqlSubscriptions.subscribe(namespace, type, queries[0]);
-            sub2 = graphqlSubscriptions.subscribe(namespace, type, queries[1]);
-            sub3 = graphqlSubscriptions.subscribe(namespace, type + 1, queries[0]);
-            sub4 = graphqlSubscriptions.subscribe(namespace + 1, type, queries[1]);
-            sinon.spy(graphqlSubscriptions.subscriptionsByNamespace, 'delete');
+            ref1 = {};
+            sub1 = subscribe1(ref1);
+            ref2 = {};
+            sub2 = subscribe1(ref2);
+            sub2_1 = subscribe2(ref2);
         });
 
-        afterEach(() => {
-            graphqlSubscriptions.subscriptionsByNamespace.delete.restore();
-        });
-
-        it('should do nothing if no type', () => {
+        it('should do nothing if no subscriber', () => {
             expect(graphqlSubscriptions.unsubscribe()).to.be.undefined;
-            expect(graphqlSubscriptions.subscriptionsByNamespace.delete).not.to.have.been.called;
         });
 
-        it('should do nothing if no namespace', () => {
-            expect(graphqlSubscriptions.unsubscribe(type)).to.be.undefined;
-            expect(graphqlSubscriptions.subscriptionsByNamespace.delete).not.to.have.been.called;
+        it('should throw if subscriber not object', () => {
+            expect(() => graphqlSubscriptions.unsubscribe('string')).to.throw('Subscriber must be an object');
         });
 
-        it('should do nothing if no hash', () => {
-            expect(graphqlSubscriptions.unsubscribe(namespace, type)).to.be.undefined;
-            expect(graphqlSubscriptions.subscriptionsByNamespace.delete).not.to.have.been.called;
+        it('should do nothing if no subscriber subscriptions', () => {
+            expect(graphqlSubscriptions.unsubscribe({})).to.be.undefined;
         });
 
-        it('should do nothing if no subscriptions', () => {
-            graphqlSubscriptions.unsubscribe('inexistent', namespace, sub1);
-            expect(graphqlSubscriptions.subscriptionsByNamespace.delete).not.to.have.been.called;
+        it('should unsubscribe ref1 and return true', () => {
+            expect(graphqlSubscriptions.unsubscribe(ref1)).to.be.true;
         });
 
-        it('should unsubscribe sub1', () => {
-            graphqlSubscriptions.unsubscribe(namespace, type, sub1);
+        it('should unsubscribe ref1 and dont remove subscribe1 from subscriptions', () => {
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.an('object');
+            expect(_.get(ref1, graphqlSubscriptions.subscribedSymbol).size).to.equal(1);
 
-            expect(graphqlSubscriptions.subscriptionsByNamespace.get(namespace).get(type).has(sub1)).to.be.false;
+            graphqlSubscriptions.unsubscribe(ref1);
+
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.an('object');
+            expect(_.get(ref1, graphqlSubscriptions.subscribedSymbol).size).to.equal(0);
         });
 
-        it('should remove type when there is no subscriptions', () => {
-            graphqlSubscriptions.unsubscribe(namespace, type + 1, sub3);
+        it('should unsubscribe ref1 and ref2 and remove subscribe1 from subscriptions', () => {
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.an('object');
+            expect(_.get(ref1, graphqlSubscriptions.subscribedSymbol).size).to.equal(1);
+            expect(_.get(ref2, graphqlSubscriptions.subscribedSymbol).size).to.equal(2);
 
-            expect(graphqlSubscriptions.subscriptionsByNamespace.get(namespace).has(type + 1)).to.be.false;
+            graphqlSubscriptions.unsubscribe(ref1);
+            graphqlSubscriptions.unsubscribe(ref2);
+
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.undefined;
+            expect(_.get(ref1, graphqlSubscriptions.subscribedSymbol).size).to.equal(0);
+            expect(_.get(ref2, graphqlSubscriptions.subscribedSymbol).size).to.equal(0);
         });
 
-        it('should remove namespace when there is no subscriptions', () => {
-            graphqlSubscriptions.unsubscribe(namespace, type, sub1);
-            graphqlSubscriptions.unsubscribe(namespace, type, sub2);
-            graphqlSubscriptions.unsubscribe(namespace, type + 1, sub3);
+        it('should unsubscribe ref1 only by namespace', () => {
+            sub1 = graphqlSubscriptions.subscribe(ref1, namespace + 1, type, queries[0]);
+            sub2 = graphqlSubscriptions.subscribe(ref1, namespace + 1, type, queries[1]);
 
-            expect(graphqlSubscriptions.subscriptionsByNamespace.has(namespace)).to.be.false;
-            expect(graphqlSubscriptions.subscriptionsByNamespace.has(namespace + 1)).to.be.true;
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.an('object');
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace + 1}.${type}.${sub1}`)).to.be.an('object');
+            expect(_.get(ref1, graphqlSubscriptions.subscribedSymbol).size).to.equal(3);
+
+            graphqlSubscriptions.unsubscribe(ref1, namespace + 1);          
+
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.an('object');
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace + 1}.${type}.${sub1}`)).to.be.undefined;
+            expect(_.get(ref1, graphqlSubscriptions.subscribedSymbol).size).to.equal(1);
+        });
+
+        it('should unsubscribe ref1 only by namespace and type', () => {
+            sub1 = graphqlSubscriptions.subscribe(ref1, namespace + 1, type + 1, queries[0]);
+            sub2 = graphqlSubscriptions.subscribe(ref1, namespace + 1, type + 1, queries[1]);
+
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.an('object');
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace + 1}.${type + 1}.${sub1}`)).to.be.an('object');
+            expect(_.get(ref1, graphqlSubscriptions.subscribedSymbol).size).to.equal(3);
+
+            graphqlSubscriptions.unsubscribe(ref1, namespace + 1, type + 1);          
+
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.an('object');
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace + 1}.${type + 1}.${sub1}`)).to.be.undefined;
+            expect(_.get(ref1, graphqlSubscriptions.subscribedSymbol).size).to.equal(1);
+        });
+
+        it('should unsubscribe ref1 only by namespace, type and hash', () => {
+            sub1 = graphqlSubscriptions.subscribe(ref1, namespace + 1, type + 1, queries[0]);
+            sub2 = graphqlSubscriptions.subscribe(ref1, namespace + 1, type + 1, queries[1]);
+
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.an('object');
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace + 1}.${type + 1}.${sub1}`)).to.be.an('object');
+            expect(_.get(ref1, graphqlSubscriptions.subscribedSymbol).size).to.equal(3);
+
+            graphqlSubscriptions.unsubscribe(ref1, namespace + 1, type + 1, sub1);
+
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.an('object');
+            expect(_.get(graphqlSubscriptions.subscriptions, `${namespace + 1}.${type + 1}.${sub1}`)).to.be.undefined;
+            expect(_.get(ref1, graphqlSubscriptions.subscribedSymbol).size).to.equal(2);
         });
     });
 

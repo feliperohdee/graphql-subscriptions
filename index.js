@@ -1,4 +1,4 @@
-const MapMap = require('map-map-2');
+const _ = require('lodash');
 const lazyExecutor = require('smallorange-graphql-lazy-executor');
 const md5 = require('md5');
 const {
@@ -21,7 +21,8 @@ module.exports = class Subscriptions {
 
 		this.schema = schema;
 		this.concurrency = concurrency;
-		this.subscriptionsByNamespace = new Map();
+		this.subscriptions = {};
+		this.subscribedSymbol = Symbol();
 
 		this.inbound = new Subject();
 		this.stream = this.inbound
@@ -35,29 +36,33 @@ module.exports = class Subscriptions {
 				root,
 				type
 			}) => {
-				const subscriptionsByType = this.subscriptionsByNamespace.get(namespace);
-				const queries = subscriptionsByType ? subscriptionsByType.get(type) : null;
+				const queries = _.get(this.subscriptions, `${namespace}.${type}`, {});
 
-				return Observable.from(queries || [])
+				return Observable.pairs(queries)
 					.mergeMap(([
-							hash,
-							executor
-						]) => executor(root, context)
-						.map(({
-							args,
-							operationName,
-							query,
-							rootName
-						}) => ({
-							args,
-							hash,
-							namespace,
-							operationName,
-							query,
-							root,
-							rootName,
-							type
-						})), null, this.concurrency)
+						hash, {
+							executor,
+							subscribers
+						}
+					]) => {
+						return executor(root, context)
+							.map(({
+								args,
+								operationName,
+								query,
+								rootName
+							}) => ({
+								args,
+								hash,
+								namespace,
+								operationName,
+								query,
+								root,
+								rootName,
+								subscribers,
+								type
+							}));
+					}, null, this.concurrency)
 			})
 			.share();
 	}
@@ -71,12 +76,14 @@ module.exports = class Subscriptions {
 		});
 	}
 
-	subscribe(namespace, type, query, variables = {}) {
-		if (!namespace || !type || !query) {
+	subscribe(subscriber, namespace, type, query, variables = {}) {
+		if (!subscriber || !namespace || !type || !query) {
 			return;
 		}
 
-		let subscriptionsByType = this.subscriptionsByNamespace.get(namespace);
+		if (typeof subscriber !== 'object') {
+			throw new Error('Subscriber must be an object');
+		}
 
 		const executor = lazyExecutor(this.schema, query, [
 			subscriptionHasSingleRootField
@@ -94,42 +101,74 @@ module.exports = class Subscriptions {
 
 		const hash = md5(`${query}${JSON.stringify(args)}`);
 
-		if (!subscriptionsByType) {
-			subscriptionsByType = new MapMap();
-			this.subscriptionsByNamespace.set(namespace, subscriptionsByType);
-		}
+		let subscription = _.get(this.subscriptions, `${namespace}.${type}.${hash}`);
 
-		if (!subscriptionsByType.has(type, hash)) {
-			subscriptionsByType.set(type, hash, (root, context) => {
-				return executor(root, context, variables, operationName)
+		if (subscription) {
+			subscription.subscribers.add(subscriber);
+		} else {
+			subscription = {
+				executor: (root, context) => executor(root, context, variables, operationName)
 					.map(query => ({
 						args,
 						operationName,
 						query,
 						rootName
-					}))
-			});
+					})),
+				subscribers: new Set([subscriber])
+			};
+
+			_.set(this.subscriptions, `${namespace}.${type}.${hash}`, subscription);
 		}
+
+		// update subscribed in subscriber
+		_.update(subscriber, this.subscribedSymbol, value => {
+			const key = `${namespace}.${type}.${hash}`;
+
+			if (!value) {
+				return new Set([key]);
+			}
+
+			return value.add(key);
+		});
 
 		return hash;
 	}
 
-	unsubscribe(namespace, type, hash) {
-		if (!namespace || !type || !hash) {
+	unsubscribe(subscriber, namespace = null, type = null, hash = null) {
+		if (!subscriber) {
 			return;
 		}
 
-		const subscriptionsByType = this.subscriptionsByNamespace.get(namespace);
+		if (typeof subscriber !== 'object') {
+			throw new Error('Subscriber must be an object');
+		}
+		
+		const filterRemove = _.compact([namespace, type, hash]).join('.');
+		const refSubscriptions = _.get(subscriber, this.subscribedSymbol);
 
-		if (!subscriptionsByType) {
+		if (!refSubscriptions) {
 			return;
 		}
 
-		subscriptionsByType.delete(type, hash);
+		refSubscriptions.forEach(path => {
+			if(filterRemove && !_.includes(path, filterRemove)){
+				return;
+			}
 
-		if (!subscriptionsByType.size()) {
-			this.subscriptionsByNamespace.delete(namespace);
-		}
+			refSubscriptions.delete(path);
+
+			const {
+				subscribers
+			} = _.get(this.subscriptions, path);
+
+			subscribers.delete(subscriber);
+
+			if (!subscribers.size) {
+				_.unset(this.subscriptions, path);
+			}
+		});
+
+		return true;
 	}
 
 	extractQueryData(schema, parsedQuery, variables = {}) {

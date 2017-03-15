@@ -144,18 +144,18 @@ module.exports = class Subscriptions {
 		}
 		
 		const filterRemove = _.compact([namespace, type, hash]).join('.');
-		const refSubscriptions = _.get(subscriber, this.subscribedSymbol);
+		const subscriberSubscriptions = _.get(subscriber, this.subscribedSymbol);
 
-		if (!refSubscriptions) {
+		if (!subscriberSubscriptions) {
 			return;
 		}
 
-		refSubscriptions.forEach(path => {
+		subscriberSubscriptions.forEach(path => {
 			if(filterRemove && !_.includes(path, filterRemove)){
 				return;
 			}
 
-			refSubscriptions.delete(path);
+			subscriberSubscriptions.delete(path);
 
 			const {
 				subscribers

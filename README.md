@@ -14,10 +14,13 @@ It doesn't take care to broadcast messages to right subscribers, it just broadca
 
 ## API
 		stream: Observable<{
+			args: object,
 			hash: string,
 			namespace: string,
+			operationName: string,
 			query: object,
 			root: object,
+			rootName: string,
 			type: string
 		}>;
 		constructor(schema: GraphQLSchema, concurrency: Number = Number.MAX_SAFE_INTEGER);

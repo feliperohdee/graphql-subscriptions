@@ -70,7 +70,7 @@ It doesn't take care to broadcast messages to right subscribers, it just broadca
 		        }
 		    }`;
 
-		const subscriptionId = subscriptions.subscribe('myNamespace', 'addComment', query);
+		const subscriptionHash = subscriptions.subscribe('myNamespace', 'addComment', query);
 
 		graphqlSubscriptions.stream
 			.take(1)
@@ -101,7 +101,7 @@ It doesn't take care to broadcast messages to right subscribers, it just broadca
 		//     type: 'type'
 		// }]
 
-		subscriptions.unsubscribe('addComment', 'myNamespace', subscriptionId);
+		subscriptions.unsubscribe('addComment', 'myNamespace', subscriptionHash);
 
 ## Sample with Redis, Websocket, and ACL
 

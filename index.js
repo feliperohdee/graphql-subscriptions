@@ -15,7 +15,7 @@ const {
 
 module.exports = class Subscriptions {
 	constructor(schema, concurrency = Number.MAX_SAFE_INTEGER) {
-		if(!schema){
+		if (!schema) {
 			throw new Error('No GraphQL schema provided');
 		}
 
@@ -43,11 +43,19 @@ module.exports = class Subscriptions {
 							hash,
 							executor
 						]) => executor(root, context)
-						.map(query => ({
+						.map(({
+							args,
+							operationName,
+							query,
+							rootName
+						}) => ({
+							args,
 							hash,
 							namespace,
+							operationName,
 							query,
 							root,
+							rootName,
 							type
 						})), null, this.concurrency)
 			})
@@ -79,11 +87,12 @@ module.exports = class Subscriptions {
 		] = this.extractQueryData(this.schema, executor.parsedQuery, variables);
 
 		const {
+			args,
 			operationName,
 			rootName
 		} = data;
 
-		const hash = `${operationName}.${rootName}.${md5(`${query}${JSON.stringify(data)}`)}`;
+		const hash = md5(`${query}${JSON.stringify(args)}`);
 
 		if (!subscriptionsByType) {
 			subscriptionsByType = new MapMap();
@@ -91,7 +100,15 @@ module.exports = class Subscriptions {
 		}
 
 		if (!subscriptionsByType.has(type, hash)) {
-			subscriptionsByType.set(type, hash, (root, context) => executor(root, context, variables, operationName));
+			subscriptionsByType.set(type, hash, (root, context) => {
+				return executor(root, context, variables, operationName)
+					.map(query => ({
+						args,
+						operationName,
+						query,
+						rootName
+					}))
+			});
 		}
 
 		return hash;
@@ -122,10 +139,10 @@ module.exports = class Subscriptions {
 					const rootFields = definition.selectionSet.selections;
 					const subcription = schema.getSubscriptionType();
 
-					if(!subcription){
+					if (!subcription) {
 						return reduction;
 					}
-					
+
 					const operationName = definition.name ? definition.name.value : null;
 					const fields = subcription
 						.getFields();
@@ -135,7 +152,7 @@ module.exports = class Subscriptions {
 							alias,
 							name
 						} = rootField;
-						
+
 						const rootAlias = alias ? alias.value : null;
 						const rootName = name.value;
 						const args = rootField.arguments

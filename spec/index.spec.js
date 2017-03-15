@@ -249,8 +249,14 @@ describe('index.js', () => {
                     .toArray()
                     .subscribe(response => {
                         expect(response).to.deep.equal([{
-                            hash: 'changeUser.user.7b6ef33adb28f92c45fe049c0abe5bb4',
+                            args: {
+                                age: undefined,
+                                city: undefined,
+                                name: 'Rohde',
+                            },
+                            hash: 'eea94b2335eb866301de6bb89d564cea',
                             namespace: 'namespace',
+                            operationName: 'changeUser',
                             query: {
                                 data: {
                                     user: {
@@ -263,10 +269,17 @@ describe('index.js', () => {
                             root: {
                                 age: 20
                             },
+                            rootName: 'user',
                             type: 'type'
                         }, {
-                            hash: 'changeUser.user.d06d13d3d599313bf5d454f98f80b930',
+                            args: {
+                                age: undefined,
+                                city: undefined,
+                                name: 'Rohde',
+                            },
+                            hash: '9c7aef8b73b41818d7b10c9c685cd82c',
                             namespace: 'namespace',
+                            operationName: 'changeUser',
                             query: {
                                 data: {
                                     user: {
@@ -278,10 +291,17 @@ describe('index.js', () => {
                             root: {
                                 age: 20
                             },
+                            rootName: 'user',
                             type: 'type'
                         }, {
-                            hash: 'changeUser.user.d06d13d3d599313bf5d454f98f80b930',
+                            args: {
+                                age: undefined,
+                                city: undefined,
+                                name: 'Rohde',
+                            },
+                            hash: '9c7aef8b73b41818d7b10c9c685cd82c',
                             namespace: 'namespace1',
+                            operationName: 'changeUser',
                             query: {
                                 data: {
                                     user: {
@@ -293,6 +313,7 @@ describe('index.js', () => {
                             root: {
                                 age: 20
                             },
+                            rootName: 'user',
                             type: 'type'
                         }]);
                     }, null, done);
@@ -410,10 +431,10 @@ describe('index.js', () => {
                 age: 21
             });
 
-            expect(sub1).to.equal('changeUser.user.5d82f7a66a54c0633449fe47496db1cc');
-            expect(sub2).to.equal('changeUser.user.5d82f7a66a54c0633449fe47496db1cc');
-            expect(sub3).to.equal('changeUser.user.7b3d5c168820bf5102901095ba80aa81');
-            expect(sub4).to.equal('changeUser.user.5d5bd2d3822a1f2c8dad38fb94340d0a');
+            expect(sub1).to.equal('ee108784308025e4f58051b7d7347319');
+            expect(sub2).to.equal('ee108784308025e4f58051b7d7347319');
+            expect(sub3).to.equal('c483a253b7fc2dba1452b11e6bce3077');
+            expect(sub4).to.equal('9c7b68de7cb7c3cdd66b86327ad3fc60');
             expect(sub1).to.equal(sub2);
             expect(sub2).not.to.equal(sub3);
             expect(sub3).not.to.equal(sub4);

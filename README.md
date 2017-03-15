@@ -25,7 +25,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			query: object,
 			root: object,
 			rootName: string,
-			subscribers: Set,
+			subscribers: Set<object>,
 			type: string
 		}>;
 		constructor(schema: GraphQLSchema, concurrency: Number = Number.MAX_SAFE_INTEGER);

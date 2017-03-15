@@ -125,7 +125,7 @@ module.exports = class Subscriptions {
 			const key = `${namespace}.${type}.${hash}`;
 
 			if (!value) {
-				return new Set([key]);
+				value = new Set();
 			}
 
 			return value.add(key);

@@ -299,7 +299,10 @@ describe('index.js', () => {
                             },
                             rootName: 'user',
                             subscribers: sub1Refs,
-                            type: 'type'
+                            type: 'type',
+                            variables: {
+                                name: 'Rohde'
+                            }
                         }, {
                             args: {
                                 age: undefined,
@@ -322,7 +325,10 @@ describe('index.js', () => {
                             },
                             rootName: 'user',
                             subscribers: sub2Refs,
-                            type: 'type'
+                            type: 'type',
+                            variables: {
+                                name: 'Rohde'
+                            }
                         }, {
                             args: {
                                 age: undefined,
@@ -345,7 +351,10 @@ describe('index.js', () => {
                             },
                             rootName: 'user',
                             subscribers: sub3Refs,
-                            type: 'type'
+                            type: 'type',
+                            variables: {
+                                name: 'Rohde'
+                            }
                         }]);
                     }, null, done);
 

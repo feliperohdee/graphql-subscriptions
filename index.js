@@ -50,7 +50,8 @@ module.exports = class Subscriptions {
 								args,
 								operationName,
 								query,
-								rootName
+								rootName,
+								variables
 							}) => ({
 								args,
 								hash,
@@ -60,7 +61,8 @@ module.exports = class Subscriptions {
 								root,
 								rootName,
 								subscribers,
-								type
+								type,
+								variables
 							}));
 					}, null, this.concurrency)
 			})
@@ -112,7 +114,8 @@ module.exports = class Subscriptions {
 						args,
 						operationName,
 						query,
-						rootName
+						rootName,
+						variables
 					})),
 				subscribers: new Set([subscriber])
 			};

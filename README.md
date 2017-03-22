@@ -27,7 +27,8 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			root: object,
 			rootName: string,
 			subscribers: Set<object>,
-			type: string
+			type: string,
+			variables: object
 		}>;
 		constructor(schema: GraphQLSchema, concurrency: Number = Number.MAX_SAFE_INTEGER);
 		run(namespace: string, type: string, root?: object = {}, context?: object = {}): void;
@@ -84,7 +85,6 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		
 		const redis = new Redis();
 		const subscriptions = new Subscriptions(schema, 10); // 10 is max concurrency
-		const flowControl = new FlowControl(subcriptions, operations, sendToWs, console.error); // the last one is optional
 		
 		const query = `subscription($name: String!, $age: Int, $city: String) {
 		        user(name: $name, age: $age, city: $city) {
@@ -102,22 +102,6 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		
 		const subscriptionHash = subscriptions.subscribe(pseudoWebSocketClient, 'myNamespace', 'addComment', query);
 
-		const operations = {
-			commentAdded: (response, subscriber) => {
-				const filter = (response, subscriber) => response.id === subscriber.id;
-
-				push(response, filter); // push will iterate response and subscribers applying optional filter
-			}
-		};
-
-		const sendToWs = (ws, response) => {
-			const {
-				query
-			} = response;
-
-			ws.send(query);
-		};
-
 		redis.onChannel('updateStream', ({
 			namespace,
 			type,
@@ -126,7 +110,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			graphqlSubscriptions.run(namespace, type, data);
 		});
 
-		// or optionally you can subscribe direct on stream
+		// you can can just subscribe direct on stream
 
 		subscriptions.stream
 		    .subscribe(({
@@ -144,7 +128,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		    		}));
     		});
 
-    		// is gonna send to all subscribers that matches flow control
+    		// is gonna send to all subscribers
 			//
 			// {
 			//	   operationName: 'addComment',
@@ -162,5 +146,27 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			//     },
 			//     type: 'type'
 			// }
+
+			// or use with flowControl
+
+			const operations = {
+				commentAdded: (response, subscriber) => {
+					const filter = (response, subscriber) => response.id === subscriber.id;
+
+					push(response, filter); // push will iterate response over subscribers applying optional filter
+				}
+			};
+
+			const sendToWs = (ws, response) => {
+				const {
+					query
+				} = response;
+
+				ws.send(query);
+			};
+
+			const flowControl = new FlowControl(subcriptions, operations, sendToWs, console.error); // the last one is optional
+
+			// and it will take care to run a filter for each subscriber and call callback when it passes
 
 			subscriptions.unsubscribe(pseudoWebSocketClient, 'addComment', 'myNamespace', subscriptionHash);

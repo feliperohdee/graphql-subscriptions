@@ -36,9 +36,10 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		unsubscribe(subscriber: object, namespace?: string, type?: string, hash?: string): void;
 
 	### FlowControl
-		subscription: ObservableSubscription;
-		constructor(subscriptions: Subscriptions, operations: object, callback: function, onError: function = () => null);
+		stream: Observable;
+		constructor(subscriptions: Subscriptions, operations: object, callback: function);
 		push(response: object, filter: function = () => true): void;
+		subscribe(next: function, error: function, complete: function): void;
 
 ## Sample
 
@@ -165,7 +166,14 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 				ws.send(query);
 			};
 
-			const flowControl = new FlowControl(subcriptions, operations, sendToWs, console.error); // the last one is optional
+			const flowControl = new FlowControl(subcriptions, operations, sendToWs);
+
+			flowControl
+				.retryWhen(err => {
+					return err
+						.do(console.error);
+				});
+				.subscribe();
 
 			// and it will take care to run a filter for each subscriber and call callback when it passes
 

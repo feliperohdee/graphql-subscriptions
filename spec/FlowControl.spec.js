@@ -48,15 +48,14 @@ const operations = {
 
 describe('FlowControl.js', () => {
     let callback;
-    let onError;
     let subscriptions;
     let flowControl;
 
     beforeEach(() => {
         callback = sinon.stub();
-        onError = sinon.stub();
         subscriptions = new Subscriptions(schema);
-        flowControl = new FlowControl(subscriptions, operations, callback, onError);
+        flowControl = new FlowControl(subscriptions, operations, callback);
+        flowControl.subscribe();
     });
 
     describe('contructor', () => {
@@ -72,18 +71,14 @@ describe('FlowControl.js', () => {
             expect(() => new FlowControl(subscriptions, operations, {})).to.throw('callback must be a function');
         });
 
-        it('should throw if onError not a function', () => {
-            expect(() => new FlowControl(subscriptions, operations, callback, {})).to.throw('onError must be a function');
-        });
-
         it('should have operations', () => {
             expect(flowControl.operations).to.have.all.keys([
                 type
             ]);
         });
 
-        it('should have subscription', () => {
-            expect(flowControl.subscription).to.be.an('object');
+        it('should have stream', () => {
+            expect(flowControl.stream).to.be.an('object');
         });
 
         describe('stream', () => {
@@ -180,53 +175,6 @@ describe('FlowControl.js', () => {
                     expect(callback).not.to.have.been.called;
 
                     done();
-                });
-            });
-
-            describe('something bad', () => {
-                beforeEach(() => {
-                    sinon.stub(operations, type)
-                        .onFirstCall()
-                        .throws(new Error('some error'))
-                        .onSecondCall()
-                        .returns(true);
-                });
-
-                afterEach(() => {
-                    operations[type].restore();
-                });
-
-                it('should call onError', done => {
-                    subscriptions.run(namespace, type, {
-                        namespace: namespace,
-                        canReceive: ['id-1', 'id-2', 'id-3']
-                    });
-
-                    _.defer(() => {
-                        expect(onError).to.have.been.calledWith(new Error('some error'));
-
-                        done();
-                    });
-                });
-
-                it('should resubscribe to stream', done => {
-                    subscriptions.run(namespace, type, {
-                        namespace: namespace,
-                        canReceive: ['id-1', 'id-2', 'id-3']
-                    });
-
-                    _.defer(() => {
-                        subscriptions.run(namespace, type, {
-                            namespace: namespace,
-                            canReceive: ['id-1', 'id-2', 'id-3']
-                        });
-
-                        _.defer(() => {
-                            expect(operations[type]).to.have.been.calledTwice
-
-                            done();
-                        });
-                    });
                 });
             });
         });

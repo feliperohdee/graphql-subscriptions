@@ -67,10 +67,6 @@ describe('FlowControl.js', () => {
             expect(() => new FlowControl(subscriptions, 'string')).to.throw('operations must be an object');
         });
 
-        it('should throw if defaultCallback not a function', () => {
-            expect(() => new FlowControl(subscriptions, operations, {})).to.throw('defaultCallback must be a function');
-        });
-
         it('should have operations', () => {
             expect(flowControl.operations).to.have.all.keys([
                 type
@@ -274,6 +270,27 @@ describe('FlowControl.js', () => {
                 root,
                 subscribers
             });
+        });
+
+        it('should do nothing if any callback', () => {
+            const root = {
+                namespace
+            };
+
+            const subscribers = [{
+                auth: {
+                    id: 'id-0',
+                    namespace: 'anotherNamespace'
+                }
+            }];
+
+            flowControl.defaultCallback = null;
+            flowControl.push({
+                root,
+                subscribers
+            });
+
+            expect(defaultCallback).not.to.have.been.called;
         });
     });
 });

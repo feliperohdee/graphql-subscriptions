@@ -6,7 +6,7 @@ const lazyExecutor = require('smallorange-graphql-lazy-executor');
 
 const {
     Subscriptions,
-    FlowControl
+    PushControl
 } = require('../');
 const {
     type,
@@ -37,7 +37,7 @@ const filters = {
     }
 };
 
-const operations = {
+const actions = {
     [type]: (response, push) => {
         // improve time complexity
         response.root.canReceive = new Set(response.root.canReceive);
@@ -46,35 +46,35 @@ const operations = {
     }
 };
 
-describe('FlowControl.js', () => {
+describe('PushControl.js', () => {
     let defaultCallback;
     let subscriptions;
-    let flowControl;
+    let pushControl;
 
     beforeEach(() => {
         defaultCallback = sinon.stub();
         subscriptions = new Subscriptions(schema);
-        flowControl = new FlowControl(subscriptions, operations, defaultCallback);
-        flowControl.subscribe();
+        pushControl = new PushControl(subscriptions, actions, defaultCallback);
+        pushControl.subscribe();
     });
 
     describe('contructor', () => {
         it('should throw if subscriptions not instanceof Subscriptions', () => {
-            expect(() => new FlowControl({})).to.throw('subscriptions must be instance of Subscriptions');
+            expect(() => new PushControl({})).to.throw('subscriptions must be instance of Subscriptions');
         });
 
-        it('should throw if operations not an object', () => {
-            expect(() => new FlowControl(subscriptions, 'string')).to.throw('operations must be an object');
+        it('should throw if actions not an object', () => {
+            expect(() => new PushControl(subscriptions, 'string')).to.throw('actions must be an object');
         });
 
-        it('should have operations', () => {
-            expect(flowControl.operations).to.have.all.keys([
+        it('should have actions', () => {
+            expect(pushControl.actions).to.have.all.keys([
                 type
             ]);
         });
 
         it('should have stream', () => {
-            expect(flowControl.stream).to.be.an('object');
+            expect(pushControl.stream).to.be.an('object');
         });
 
         describe('stream', () => {
@@ -116,7 +116,7 @@ describe('FlowControl.js', () => {
                 });
             });
 
-            it('should do nothing if no operation type', done => {
+            it('should do nothing if no action type', done => {
                 subscriptions.subscribe({}, namespace, type + 1, queries[0], {
                     name: 'Rohde'
                 });
@@ -178,7 +178,7 @@ describe('FlowControl.js', () => {
 
     describe('push', () => {
         it('should throw if subscribers not an array or Set', () => {
-            expect(() => flowControl.push({})).to.throw('subscribers must be an Array or Set');
+            expect(() => pushControl.push({})).to.throw('subscribers must be an Array or Set');
         });
 
         it('should not call defaultCallback if filter is rejected', () => {
@@ -193,7 +193,7 @@ describe('FlowControl.js', () => {
                 }
             }];
 
-            flowControl.push({
+            pushControl.push({
                 root,
                 subscribers
             }, () => null);
@@ -213,7 +213,7 @@ describe('FlowControl.js', () => {
                 }
             }];
 
-            flowControl.push({
+            pushControl.push({
                 root,
                 subscribers
             }, () => true);
@@ -236,7 +236,7 @@ describe('FlowControl.js', () => {
                 }
             }];
 
-            flowControl.push({
+            pushControl.push({
                 root,
                 subscribers
             });
@@ -260,7 +260,7 @@ describe('FlowControl.js', () => {
                 }
             }];
 
-            flowControl.push({
+            pushControl.push({
                 root,
                 subscribers
             }, () => true, customCallback);
@@ -284,8 +284,8 @@ describe('FlowControl.js', () => {
                 }
             }];
 
-            flowControl.defaultCallback = null;
-            flowControl.push({
+            pushControl.defaultCallback = null;
+            pushControl.push({
                 root,
                 subscribers
             });

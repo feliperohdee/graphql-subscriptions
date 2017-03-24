@@ -10,7 +10,7 @@ This is a simple GraphQl subscriptions manager, it takes care to group similar q
 
 It doesn't take care subscribe to your pub/sub mechanism, you should do it by yourself and call run when some event happens, this way, you have freedom to choose the best implementation type for your app. If u're using Redis, you shouldn't create a channel for each event type, instead, you cant just pass an object along with this info, redis is very sensitive with many channels, so, it avoids CPU and memory overhead at Redis machine ;), if you don't know how to do this, you should study more.
 
-It doesn't take care to broadcast messages to right subscribers, it just broadcast, at this way, you can plug in your custom ACL implementation to keep with a single point of truthness, if you don't have one you can use our embedded `FlowControl` and be happy.
+It doesn't take care to broadcast messages to right subscribers, it just broadcast, at this way, you can plug in your custom ACL implementation to keep with a single point of truthness, if you don't have one you can use our embedded `PushControl` and be happy.
 
 ## Important
 
@@ -35,7 +35,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		subscribe(subscriber: object, namespace: string, type: string, variables?: object = {}): string (subscription hash);
 		unsubscribe(subscriber: object, namespace?: string, type?: string, hash?: string): void;
 
-	### FlowControl
+	### PushControl
 		stream: Observable;
 		constructor(subscriptions: Subscriptions, operations: object, callback: function);
 		push(response: object, filter: function = () => true): void;
@@ -45,7 +45,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 
 		const {
 			Subscriptions,
-			FlowControl
+			PushControl
 		} = require('smallorange-graphql-subscriptions');
 		const {
 			Redis
@@ -148,7 +148,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			//     type: 'type'
 			// }
 
-			// or use with flowControl
+			// or use with pushControl
 
 			const operations = {
 				commentAdded: (response, subscriber) => {
@@ -166,9 +166,9 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 				ws.send(query);
 			};
 
-			const flowControl = new FlowControl(subcriptions, operations, sendToWs);
+			const pushControl = new PushControl(subcriptions, operations, sendToWs);
 
-			flowControl
+			pushControl
 				.retryWhen(err => {
 					return err
 						.do(console.error);

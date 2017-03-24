@@ -47,14 +47,14 @@ const operations = {
 };
 
 describe('FlowControl.js', () => {
-    let callback;
+    let defaultCallback;
     let subscriptions;
     let flowControl;
 
     beforeEach(() => {
-        callback = sinon.stub();
+        defaultCallback = sinon.stub();
         subscriptions = new Subscriptions(schema);
-        flowControl = new FlowControl(subscriptions, operations, callback);
+        flowControl = new FlowControl(subscriptions, operations, defaultCallback);
         flowControl.subscribe();
     });
 
@@ -67,8 +67,8 @@ describe('FlowControl.js', () => {
             expect(() => new FlowControl(subscriptions, 'string')).to.throw('operations must be an object');
         });
 
-        it('should throw if callback not a function', () => {
-            expect(() => new FlowControl(subscriptions, operations, {})).to.throw('callback must be a function');
+        it('should throw if defaultCallback not a function', () => {
+            expect(() => new FlowControl(subscriptions, operations, {})).to.throw('defaultCallback must be a function');
         });
 
         it('should have operations', () => {
@@ -128,7 +128,7 @@ describe('FlowControl.js', () => {
                 subscriptions.run(namespace, type + 1, {});
 
                 _.defer(() => {
-                    expect(callback).not.to.have.been.called;
+                    expect(defaultCallback).not.to.have.been.called;
 
                     done();
                 });
@@ -141,9 +141,9 @@ describe('FlowControl.js', () => {
                 });
 
                 _.defer(() => {
-                    expect(callback).to.have.been.calledTwice;
-                    expect(callback.firstCall).to.have.been.calledWith(sinon.match.any, ref1);
-                    expect(callback.secondCall).to.have.been.calledWith(sinon.match.any, ref3);
+                    expect(defaultCallback).to.have.been.calledTwice;
+                    expect(defaultCallback.firstCall).to.have.been.calledWith(sinon.match.any, ref1);
+                    expect(defaultCallback.secondCall).to.have.been.calledWith(sinon.match.any, ref3);
 
                     done();
                 });
@@ -156,10 +156,10 @@ describe('FlowControl.js', () => {
                 });
 
                 _.defer(() => {
-                    expect(callback).to.have.been.calledThrice;
-                    expect(callback.firstCall).to.have.been.calledWith(sinon.match.any, ref1);
-                    expect(callback.secondCall).to.have.been.calledWith(sinon.match.any, ref2);
-                    expect(callback.thirdCall).to.have.been.calledWith(sinon.match.any, ref3);
+                    expect(defaultCallback).to.have.been.calledThrice;
+                    expect(defaultCallback.firstCall).to.have.been.calledWith(sinon.match.any, ref1);
+                    expect(defaultCallback.secondCall).to.have.been.calledWith(sinon.match.any, ref2);
+                    expect(defaultCallback.thirdCall).to.have.been.calledWith(sinon.match.any, ref3);
 
                     done();
                 });
@@ -172,7 +172,7 @@ describe('FlowControl.js', () => {
                 });
 
                 _.defer(() => {
-                    expect(callback).not.to.have.been.called;
+                    expect(defaultCallback).not.to.have.been.called;
 
                     done();
                 });
@@ -185,7 +185,7 @@ describe('FlowControl.js', () => {
             expect(() => flowControl.push({})).to.throw('subscribers must be an Array or Set');
         });
 
-        it('should not call callback if filter is rejected', () => {
+        it('should not call defaultCallback if filter is rejected', () => {
             const root = {
                 namespace
             };
@@ -202,10 +202,10 @@ describe('FlowControl.js', () => {
                 subscribers
             }, () => null);
 
-            expect(callback).not.to.have.been.called;
+            expect(defaultCallback).not.to.have.been.called;
         });
 
-        it('should call callback if filter is accepted', () => {
+        it('should call defaultCallback if filter is accepted', () => {
             const root = {
                 namespace
             };
@@ -222,13 +222,13 @@ describe('FlowControl.js', () => {
                 subscribers
             }, () => true);
 
-            expect(callback).to.have.been.calledWith({
+            expect(defaultCallback).to.have.been.calledWith({
                 root,
                 subscribers
             });
         });
 
-        it('should call callback if no filter provided', () => {
+        it('should call defaultCallback if no filter provided', () => {
             const root = {
                 namespace
             };
@@ -245,7 +245,32 @@ describe('FlowControl.js', () => {
                 subscribers
             });
 
-            expect(callback).to.have.been.calledWith({
+            expect(defaultCallback).to.have.been.calledWith({
+                root,
+                subscribers
+            });
+        });
+
+        it('should not call defaultCallback and call customCallback', () => {
+            const customCallback = sinon.stub();
+            const root = {
+                namespace
+            };
+
+            const subscribers = [{
+                auth: {
+                    id: 'id-0',
+                    namespace: 'anotherNamespace'
+                }
+            }];
+
+            flowControl.push({
+                root,
+                subscribers
+            }, () => true, customCallback);
+
+            expect(defaultCallback).not.to.have.been.called;
+            expect(customCallback).to.have.been.calledWith({
                 root,
                 subscribers
             });

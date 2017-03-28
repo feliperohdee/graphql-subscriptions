@@ -5,7 +5,7 @@ const {
     GraphQLInt
 } = require('graphql');
 
-const type = 'type';
+const event = 'event';
 const namespace = 'namespace';
 const queries = [
     `subscription changeUser($name: String!, $age: Int, $city: String) {
@@ -83,7 +83,7 @@ const noSubscriptionSchema = new GraphQLSchema({
 });
 
 module.exports = {
-    type,
+    event,
     namespace,
     queries,
     schema,

@@ -8,7 +8,7 @@ const {
 } = require('rxjs');
 
 const {
-    type,
+    event,
     namespace,
     queries,
     schema,
@@ -55,11 +55,11 @@ describe('Subscriptions.js', () => {
             it('should do nothing if no namespace', done => {
                 const result = [];
 
-                subscriptions.subscribe({}, namespace, type, queries[0], {
+                subscriptions.subscribe({}, namespace, event, queries[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe({}, namespace, type, queries[1], {
+                subscriptions.subscribe({}, namespace, event, queries[1], {
                     name: 'Rohde'
                 });
 
@@ -76,11 +76,11 @@ describe('Subscriptions.js', () => {
             it('should do nothing if namespace not found', done => {
                 const result = [];
 
-                subscriptions.subscribe({}, namespace, type, queries[0], {
+                subscriptions.subscribe({}, namespace, event, queries[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe({}, namespace, type, queries[1], {
+                subscriptions.subscribe({}, namespace, event, queries[1], {
                     name: 'Rohde'
                 });
 
@@ -91,17 +91,17 @@ describe('Subscriptions.js', () => {
                         done();
                     });
 
-                subscriptions.run(namespace + 1, type);
+                subscriptions.run(namespace + 1, event);
             });
 
-            it('should do nothing if no type', done => {
+            it('should do nothing if no event', done => {
                 const result = [];
 
-                subscriptions.subscribe({}, namespace, type, queries[0], {
+                subscriptions.subscribe({}, namespace, event, queries[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe({}, namespace, type, queries[1], {
+                subscriptions.subscribe({}, namespace, event, queries[1], {
                     name: 'Rohde'
                 });
 
@@ -115,14 +115,14 @@ describe('Subscriptions.js', () => {
                 subscriptions.run(namespace);
             });
 
-            it('should do nothing if type not found', done => {
+            it('should do nothing if event not found', done => {
                 const result = [];
 
-                subscriptions.subscribe({}, namespace, type, queries[0], {
+                subscriptions.subscribe({}, namespace, event, queries[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe({}, namespace, type, queries[1], {
+                subscriptions.subscribe({}, namespace, event, queries[1], {
                     name: 'Rohde'
                 });
 
@@ -133,15 +133,15 @@ describe('Subscriptions.js', () => {
                         done();
                     });
 
-                subscriptions.run(namespace, type + 1);
+                subscriptions.run(namespace, event + 1);
             });
 
             it('should handle query error', done => {
-                subscriptions.subscribe({}, namespace, type, queries[0], {
+                subscriptions.subscribe({}, namespace, event, queries[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe({}, namespace, type, queries[1]);
+                subscriptions.subscribe({}, namespace, event, queries[1]);
 
                 subscriptions.stream
                     .subscribe(null, err => {
@@ -149,17 +149,17 @@ describe('Subscriptions.js', () => {
                         done();
                     });
 
-                subscriptions.run(namespace, type);
+                subscriptions.run(namespace, event);
             });
 
             it('should handle no queries', done => {
                 const result = [];
 
-                subscriptions.subscribe({}, namespace, type, queries[0], {
+                subscriptions.subscribe({}, namespace, event, queries[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe({}, namespace, type, queries[1]);
+                subscriptions.subscribe({}, namespace, event, queries[1]);
 
                 subscriptions.stream
                     .timeoutWith(10, Observable.empty())
@@ -168,7 +168,7 @@ describe('Subscriptions.js', () => {
                         done();
                     });
 
-                subscriptions.run(namespace, type + 1);
+                subscriptions.run(namespace, event + 1);
             });
 
             it('should run queries', done => {
@@ -177,26 +177,26 @@ describe('Subscriptions.js', () => {
                 const ref3 = {};
                 const ref4 = {};
 
-                const sub1 = subscriptions.subscribe(ref1, namespace, type, queries[0], {
+                const sub1 = subscriptions.subscribe(ref1, namespace, event, queries[0], {
                     name: 'Rohde'
                 });
 
-                const sub2 = subscriptions.subscribe(ref2, namespace, type, queries[1], {
+                const sub2 = subscriptions.subscribe(ref2, namespace, event, queries[1], {
                     name: 'Rohde'
                 });
 
-                const sub3 = subscriptions.subscribe(ref3, namespace + 1, type, queries[1], {
+                const sub3 = subscriptions.subscribe(ref3, namespace + 1, event, queries[1], {
                     name: 'Rohde'
                 });
 
-                const sub4 = subscriptions.subscribe(ref4, namespace, type + 1, queries[1], {
+                const sub4 = subscriptions.subscribe(ref4, namespace, event + 1, queries[1], {
                     name: 'Rohde'
                 });
 
-                const sub1Refs = _.get(subscriptions.subscriptions, `${namespace}.${type}.${sub1}.subscribers`);
-                const sub2Refs = _.get(subscriptions.subscriptions, `${namespace}.${type}.${sub2}.subscribers`);
-                const sub3Refs = _.get(subscriptions.subscriptions, `${namespace}.${type}.${sub3}.subscribers`);
-                const sub4Refs = _.get(subscriptions.subscriptions, `${namespace}.${type}.${sub4}.subscribers`);
+                const sub1Refs = _.get(subscriptions.subscriptions, `${namespace}.${event}.${sub1}.subscribers`);
+                const sub2Refs = _.get(subscriptions.subscriptions, `${namespace}.${event}.${sub2}.subscribers`);
+                const sub3Refs = _.get(subscriptions.subscriptions, `${namespace}.${event}.${sub3}.subscribers`);
+                const sub4Refs = _.get(subscriptions.subscriptions, `${namespace}.${event}.${sub4}.subscribers`);
 
                 subscriptions.stream
                     .take(3)
@@ -225,7 +225,7 @@ describe('Subscriptions.js', () => {
                             },
                             rootName: 'user',
                             subscribers: sub1Refs,
-                            type: 'type',
+                            event: 'event',
                             variables: {
                                 name: 'Rohde'
                             }
@@ -251,7 +251,7 @@ describe('Subscriptions.js', () => {
                             },
                             rootName: 'user',
                             subscribers: sub2Refs,
-                            type: 'type',
+                            event: 'event',
                             variables: {
                                 name: 'Rohde'
                             }
@@ -277,18 +277,18 @@ describe('Subscriptions.js', () => {
                             },
                             rootName: 'user',
                             subscribers: sub3Refs,
-                            type: 'type',
+                            event: 'event',
                             variables: {
                                 name: 'Rohde'
                             }
                         }]);
                     }, null, done);
 
-                subscriptions.run(namespace, type, {
+                subscriptions.run(namespace, event, {
                     age: 20
                 });
 
-                subscriptions.run(namespace + 1, type, {
+                subscriptions.run(namespace + 1, event, {
                     age: 20
                 });
             });
@@ -305,9 +305,9 @@ describe('Subscriptions.js', () => {
         });
 
         it('should call inbound.next with default root and context', () => {
-            subscriptions.run(namespace, type);
+            subscriptions.run(namespace, event);
             expect(subscriptions.inbound.next).to.have.been.calledWith({
-                type,
+                event,
                 namespace,
                 root: {},
                 context: {}
@@ -315,14 +315,14 @@ describe('Subscriptions.js', () => {
         });
 
         it('should call inbound.next with custom root ans context', () => {
-            subscriptions.run(namespace, type, {
+            subscriptions.run(namespace, event, {
                 root: 'root'
             }, {
                 context: 'context'
             });
 
             expect(subscriptions.inbound.next).to.have.been.calledWith({
-                type,
+                event,
                 namespace,
                 root: {
                     root: 'root'
@@ -353,30 +353,30 @@ describe('Subscriptions.js', () => {
             expect(subscriptions.extractQueryData).not.to.have.been.called;
         });
 
-        it('should do nothing if no type', () => {
+        it('should do nothing if no event', () => {
             expect(subscriptions.subscribe({}, namespace)).to.be.undefined;
             expect(subscriptions.extractQueryData).not.to.have.been.called;
         });
 
         it('should do nothing if no query', () => {
-            expect(subscriptions.subscribe({}, namespace, type)).to.be.undefined;
+            expect(subscriptions.subscribe({}, namespace, event)).to.be.undefined;
             expect(subscriptions.extractQueryData).not.to.have.been.called;
         });
 
         it('should throw if subscriber not object', () => {
-            expect(() => subscriptions.subscribe('string', namespace, type, `subscription {user{name}}`)).to.throw('Subscriber must be an object');
+            expect(() => subscriptions.subscribe('string', namespace, event, `subscription {user{name}}`)).to.throw('Subscriber must be an object');
         });
 
         it('should throw if no operationName', () => {
-            expect(() => subscriptions.subscribe({}, namespace, type, `subscription {user{name}}`)).to.throw('GraphQLError: Small Orange subscriptions must have an operationName');
+            expect(() => subscriptions.subscribe({}, namespace, event, `subscription {user{name}}`)).to.throw('GraphQLError: Small Orange subscriptions must have an operationName');
         });
 
         it('should throw if multiple roots', () => {
-            expect(() => subscriptions.subscribe({}, namespace, type, `subscription changeUser{user{name} user{name}}`)).to.throw('GraphQLError: Subscription "changeUser" must have only one field.');
+            expect(() => subscriptions.subscribe({}, namespace, event, `subscription changeUser{user{name} user{name}}`)).to.throw('GraphQLError: Subscription "changeUser" must have only one field.');
         });
 
         it('should throw if fragments', () => {
-            expect(() => subscriptions.subscribe({}, namespace, type, `
+            expect(() => subscriptions.subscribe({}, namespace, event, `
                 subscription changeUser {
                     ...userInfo
                 }
@@ -390,19 +390,19 @@ describe('Subscriptions.js', () => {
         });
 
         it('should return hash based on query and variables', () => {
-            const sub1 = subscriptions.subscribe({}, namespace, type, queries[0], {
+            const sub1 = subscriptions.subscribe({}, namespace, event, queries[0], {
                 age: 20
             });
 
-            const sub2 = subscriptions.subscribe({}, namespace, type, queries[0], {
+            const sub2 = subscriptions.subscribe({}, namespace, event, queries[0], {
                 age: 20
             });
 
-            const sub3 = subscriptions.subscribe({}, namespace, type, queries[1], {
+            const sub3 = subscriptions.subscribe({}, namespace, event, queries[1], {
                 age: 20
             });
 
-            const sub4 = subscriptions.subscribe({}, namespace, type, queries[1], {
+            const sub4 = subscriptions.subscribe({}, namespace, event, queries[1], {
                 age: 21
             });
 
@@ -416,17 +416,17 @@ describe('Subscriptions.js', () => {
         });
 
         it('should create subscriptions', () => {
-            const sub1 = subscriptions.subscribe({}, namespace, type, queries[0], {
+            const sub1 = subscriptions.subscribe({}, namespace, event, queries[0], {
                 age: 20
             });
 
-            expect(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub1}.executor`)).to.be.a('function');
-            expect(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub1}.subscribers`)).to.be.a('Set');
+            expect(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub1}.executor`)).to.be.a('function');
+            expect(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub1}.subscribers`)).to.be.a('Set');
         });
 
         it('should add subscribers', () => {
-            const subscribe1 = ref => subscriptions.subscribe(ref, namespace, type, queries[0]);
-            const subscribe2 = ref => subscriptions.subscribe(ref, namespace, type, queries[1]);
+            const subscribe1 = ref => subscriptions.subscribe(ref, namespace, event, queries[0]);
+            const subscribe2 = ref => subscriptions.subscribe(ref, namespace, event, queries[1]);
 
             const ref1 = {};
             const sub1 = subscribe1(ref1);
@@ -438,49 +438,49 @@ describe('Subscriptions.js', () => {
             const ref3 = {};
             const sub3 = subscribe2(ref3);
 
-            expect(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub1}.subscribers`).size).to.equal(2);
-            expect(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub2}.subscribers`).size).to.equal(2);
-            expect(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub3}.subscribers`).size).to.equal(2);
+            expect(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub1}.subscribers`).size).to.equal(2);
+            expect(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub2}.subscribers`).size).to.equal(2);
+            expect(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub3}.subscribers`).size).to.equal(2);
 
-            expect(_.get(ref1, subscriptions.subscribedSymbol).has(`${namespace}.${type}.${sub1}`)).to.be.true;
+            expect(_.get(ref1, subscriptions.subscribedSymbol).has(`${namespace}.${event}.${sub1}`)).to.be.true;
             expect(_.get(ref1, subscriptions.subscribedSymbol).size).to.equal(1);
-            expect(_.get(ref2, subscriptions.subscribedSymbol).has(`${namespace}.${type}.${sub2}`)).to.be.true;
-            expect(_.get(ref2, subscriptions.subscribedSymbol).has(`${namespace}.${type}.${sub2_1}`)).to.be.true;
+            expect(_.get(ref2, subscriptions.subscribedSymbol).has(`${namespace}.${event}.${sub2}`)).to.be.true;
+            expect(_.get(ref2, subscriptions.subscribedSymbol).has(`${namespace}.${event}.${sub2_1}`)).to.be.true;
             expect(_.get(ref2, subscriptions.subscribedSymbol).size).to.equal(2);
-            expect(_.get(ref3, subscriptions.subscribedSymbol).has(`${namespace}.${type}.${sub3}`)).to.be.true;
+            expect(_.get(ref3, subscriptions.subscribedSymbol).has(`${namespace}.${event}.${sub3}`)).to.be.true;
             expect(_.get(ref3, subscriptions.subscribedSymbol).size).to.equal(1);
         });
 
         it('should reuse shallow identic queries', () => {
-            const sub1 = subscriptions.subscribe({}, namespace, type, queries[0], {
+            const sub1 = subscriptions.subscribe({}, namespace, event, queries[0], {
                 age: 20
             });
 
-            const sub2 = subscriptions.subscribe({}, namespace, type, queries[0], {
+            const sub2 = subscriptions.subscribe({}, namespace, event, queries[0], {
                 age: 20
             });
 
-            expect(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.equal(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub2}`));
-            expect(_.size(_.get(subscriptions.subscriptions, `${namespace}.${type}`))).to.equal(1);
+            expect(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub1}`)).to.equal(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub2}`));
+            expect(_.size(_.get(subscriptions.subscriptions, `${namespace}.${event}`))).to.equal(1);
         });
 
         it('should not reuse shallow different queries', () => {
-            const sub1 = subscriptions.subscribe({}, namespace, type, queries[0], {
+            const sub1 = subscriptions.subscribe({}, namespace, event, queries[0], {
                 age: 20
             });
 
-            const sub2 = subscriptions.subscribe({}, namespace, type, queries[1], {
+            const sub2 = subscriptions.subscribe({}, namespace, event, queries[1], {
                 age: 20
             });
 
-            expect(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).not.to.equal(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub2}`));
-            expect(_.size(_.get(subscriptions.subscriptions, `${namespace}.${type}`))).to.equal(2);
+            expect(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub1}`)).not.to.equal(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub2}`));
+            expect(_.size(_.get(subscriptions.subscriptions, `${namespace}.${event}`))).to.equal(2);
         });
     });
 
     describe('unsubscribe', () => {
-        const subscribe1 = ref => subscriptions.subscribe(ref, namespace, type, queries[0]);
-        const subscribe2 = ref => subscriptions.subscribe(ref, namespace, type, queries[1]);
+        const subscribe1 = ref => subscriptions.subscribe(ref, namespace, event, queries[0]);
+        const subscribe2 = ref => subscriptions.subscribe(ref, namespace, event, queries[1]);
         let ref1;
         let sub1;
         let ref2;
@@ -512,70 +512,70 @@ describe('Subscriptions.js', () => {
         });
 
         it('should unsubscribe ref1 and dont remove subscribe1 from subscriptions', () => {
-            expect(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.an('object');
+            expect(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub1}`)).to.be.an('object');
             expect(_.get(ref1, subscriptions.subscribedSymbol).size).to.equal(1);
 
             subscriptions.unsubscribe(ref1);
 
-            expect(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.an('object');
+            expect(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub1}`)).to.be.an('object');
             expect(_.get(ref1, subscriptions.subscribedSymbol).size).to.equal(0);
         });
 
         it('should unsubscribe ref1 and ref2 and remove subscribe1 from subscriptions', () => {
-            expect(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.an('object');
+            expect(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub1}`)).to.be.an('object');
             expect(_.get(ref1, subscriptions.subscribedSymbol).size).to.equal(1);
             expect(_.get(ref2, subscriptions.subscribedSymbol).size).to.equal(2);
 
             subscriptions.unsubscribe(ref1);
             subscriptions.unsubscribe(ref2);
 
-            expect(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.undefined;
+            expect(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub1}`)).to.be.undefined;
             expect(_.get(ref1, subscriptions.subscribedSymbol).size).to.equal(0);
             expect(_.get(ref2, subscriptions.subscribedSymbol).size).to.equal(0);
         });
 
         it('should unsubscribe ref1 only by namespace', () => {
-            sub1 = subscriptions.subscribe(ref1, namespace + 1, type, queries[0]);
-            sub2 = subscriptions.subscribe(ref1, namespace + 1, type, queries[1]);
+            sub1 = subscriptions.subscribe(ref1, namespace + 1, event, queries[0]);
+            sub2 = subscriptions.subscribe(ref1, namespace + 1, event, queries[1]);
 
-            expect(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.an('object');
-            expect(_.get(subscriptions.subscriptions, `${namespace + 1}.${type}.${sub1}`)).to.be.an('object');
+            expect(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub1}`)).to.be.an('object');
+            expect(_.get(subscriptions.subscriptions, `${namespace + 1}.${event}.${sub1}`)).to.be.an('object');
             expect(_.get(ref1, subscriptions.subscribedSymbol).size).to.equal(3);
 
             subscriptions.unsubscribe(ref1, namespace + 1);
 
-            expect(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.an('object');
-            expect(_.get(subscriptions.subscriptions, `${namespace + 1}.${type}.${sub1}`)).to.be.undefined;
+            expect(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub1}`)).to.be.an('object');
+            expect(_.get(subscriptions.subscriptions, `${namespace + 1}.${event}.${sub1}`)).to.be.undefined;
             expect(_.get(ref1, subscriptions.subscribedSymbol).size).to.equal(1);
         });
 
-        it('should unsubscribe ref1 only by namespace and type', () => {
-            sub1 = subscriptions.subscribe(ref1, namespace + 1, type + 1, queries[0]);
-            sub2 = subscriptions.subscribe(ref1, namespace + 1, type + 1, queries[1]);
+        it('should unsubscribe ref1 only by namespace and event', () => {
+            sub1 = subscriptions.subscribe(ref1, namespace + 1, event + 1, queries[0]);
+            sub2 = subscriptions.subscribe(ref1, namespace + 1, event + 1, queries[1]);
 
-            expect(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.an('object');
-            expect(_.get(subscriptions.subscriptions, `${namespace + 1}.${type + 1}.${sub1}`)).to.be.an('object');
+            expect(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub1}`)).to.be.an('object');
+            expect(_.get(subscriptions.subscriptions, `${namespace + 1}.${event + 1}.${sub1}`)).to.be.an('object');
             expect(_.get(ref1, subscriptions.subscribedSymbol).size).to.equal(3);
 
-            subscriptions.unsubscribe(ref1, namespace + 1, type + 1);
+            subscriptions.unsubscribe(ref1, namespace + 1, event + 1);
 
-            expect(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.an('object');
-            expect(_.get(subscriptions.subscriptions, `${namespace + 1}.${type + 1}.${sub1}`)).to.be.undefined;
+            expect(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub1}`)).to.be.an('object');
+            expect(_.get(subscriptions.subscriptions, `${namespace + 1}.${event + 1}.${sub1}`)).to.be.undefined;
             expect(_.get(ref1, subscriptions.subscribedSymbol).size).to.equal(1);
         });
 
-        it('should unsubscribe ref1 only by namespace, type and hash', () => {
-            sub1 = subscriptions.subscribe(ref1, namespace + 1, type + 1, queries[0]);
-            sub2 = subscriptions.subscribe(ref1, namespace + 1, type + 1, queries[1]);
+        it('should unsubscribe ref1 only by namespace, event and hash', () => {
+            sub1 = subscriptions.subscribe(ref1, namespace + 1, event + 1, queries[0]);
+            sub2 = subscriptions.subscribe(ref1, namespace + 1, event + 1, queries[1]);
 
-            expect(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.an('object');
-            expect(_.get(subscriptions.subscriptions, `${namespace + 1}.${type + 1}.${sub1}`)).to.be.an('object');
+            expect(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub1}`)).to.be.an('object');
+            expect(_.get(subscriptions.subscriptions, `${namespace + 1}.${event + 1}.${sub1}`)).to.be.an('object');
             expect(_.get(ref1, subscriptions.subscribedSymbol).size).to.equal(3);
 
-            subscriptions.unsubscribe(ref1, namespace + 1, type + 1, sub1);
+            subscriptions.unsubscribe(ref1, namespace + 1, event + 1, sub1);
 
-            expect(_.get(subscriptions.subscriptions, `${namespace}.${type}.${sub1}`)).to.be.an('object');
-            expect(_.get(subscriptions.subscriptions, `${namespace + 1}.${type + 1}.${sub1}`)).to.be.undefined;
+            expect(_.get(subscriptions.subscriptions, `${namespace}.${event}.${sub1}`)).to.be.an('object');
+            expect(_.get(subscriptions.subscriptions, `${namespace + 1}.${event + 1}.${sub1}`)).to.be.undefined;
             expect(_.get(ref1, subscriptions.subscribedSymbol).size).to.equal(2);
         });
     });
@@ -601,7 +601,7 @@ describe('Subscriptions.js', () => {
             }]);
         });
 
-        it('should return null if no subscription type', () => {
+        it('should return null if no subscription event', () => {
             const executor = lazyExecutor(noSubscriptionSchema, queries[0]);
 
             expect(subscriptions.extractQueryData(noSubscriptionSchema, executor.parsedQuery, {

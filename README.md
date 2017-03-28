@@ -20,6 +20,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 	### Subscriptions
 		stream: Observable<{
 			args: object,
+			event: string,
 			hash: string,
 			namespace: string,
 			operationName: string,
@@ -27,13 +28,12 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			root: object,
 			rootName: string,
 			subscribers: Set<object>,
-			type: string,
 			variables: object
 		}>;
 		constructor(schema: GraphQLSchema, concurrency: Number = Number.MAX_SAFE_INTEGER);
-		run(namespace: string, type: string, root?: object = {}, context?: object = {}): void;
-		subscribe(subscriber: object, namespace: string, type: string, variables?: object = {}): string (subscription hash);
-		unsubscribe(subscriber: object, namespace?: string, type?: string, hash?: string): void;
+		run(namespace: string, event: string, root?: object = {}, context?: object = {}): void;
+		subscribe(subscriber: object, namespace: string, event: string, variables?: object = {}): string (subscription hash);
+		unsubscribe(subscriber: object, namespace?: string, event?: string, hash?: string): void;
 
 	### PushControl
 		stream: Observable;
@@ -105,10 +105,10 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 
 		redis.onChannel('updateStream', ({
 			namespace,
-			type,
+			event,
 			data
 		}) => {
-			graphqlSubscriptions.run(namespace, type, data);
+			graphqlSubscriptions.run(namespace, event, data);
 		});
 
 		// you can can just subscribe direct on stream
@@ -119,13 +119,13 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		    		query,
 		    		root,
 		    		subscribers,
-		    		type
+		    		event
 		    	}) => {
 		    		subscribers.forEach(subscriber => subscriber.send({
 		    			operationName,
 		    			query,
 		    			root,
-		    			type
+		    			event
 		    		}));
     		});
 
@@ -145,7 +145,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			//     root: {
 			//         age: 20
 			//     },
-			//     type: 'type'
+			//     event: 'event'
 			// }
 
 			// or use with pushControl

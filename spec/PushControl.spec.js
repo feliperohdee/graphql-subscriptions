@@ -9,7 +9,7 @@ const {
     PushControl
 } = require('../');
 const {
-    type,
+    event,
     namespace,
     queries,
     schema,
@@ -20,7 +20,7 @@ chai.use(sinonChai);
 
 const expect = chai.expect;
 const filters = {
-    [type]: (response, subscriber) => {
+    [event]: (response, subscriber) => {
         const {
             root
         } = response;
@@ -38,11 +38,11 @@ const filters = {
 };
 
 const actions = {
-    [type]: (response, push) => {
+    [event]: (response, push) => {
         // improve time complexity
         response.root.canReceive = new Set(response.root.canReceive);
 
-        push(response, filters[type]);
+        push(response, filters[event]);
     }
 };
 
@@ -69,7 +69,7 @@ describe('PushControl.js', () => {
 
         it('should have actions', () => {
             expect(pushControl.actions).to.have.all.keys([
-                type
+                event
             ]);
         });
 
@@ -103,25 +103,25 @@ describe('PushControl.js', () => {
             };
 
             beforeEach(() => {
-                subscriptions.subscribe(ref1, namespace, type, queries[0], {
+                subscriptions.subscribe(ref1, namespace, event, queries[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe(ref2, namespace, type, queries[0], {
+                subscriptions.subscribe(ref2, namespace, event, queries[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe(ref3, namespace, type, queries[0], {
+                subscriptions.subscribe(ref3, namespace, event, queries[0], {
                     name: 'Rohde'
                 });
             });
 
-            it('should do nothing if no action type', done => {
-                subscriptions.subscribe({}, namespace, type + 1, queries[0], {
+            it('should do nothing if no action event', done => {
+                subscriptions.subscribe({}, namespace, event + 1, queries[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.run(namespace, type + 1, {});
+                subscriptions.run(namespace, event + 1, {});
 
                 _.defer(() => {
                     expect(defaultCallback).not.to.have.been.called;
@@ -131,7 +131,7 @@ describe('PushControl.js', () => {
             });
 
             it('should deliver to just ref1 and ref3', done => {
-                subscriptions.run(namespace, type, {
+                subscriptions.run(namespace, event, {
                     namespace,
                     canReceive: ['id-1', 'id-3']
                 });
@@ -146,7 +146,7 @@ describe('PushControl.js', () => {
             });
 
             it('should deliver to all', done => {
-                subscriptions.run(namespace, type, {
+                subscriptions.run(namespace, event, {
                     namespace,
                     canReceive: ['id-1', 'id-2', 'id-3']
                 });
@@ -162,7 +162,7 @@ describe('PushControl.js', () => {
             });
 
             it('should not deliver', done => {
-                subscriptions.run(namespace, type, {
+                subscriptions.run(namespace, event, {
                     namespace: namespace + 1,
                     canReceive: ['id-1', 'id-2', 'id-3']
                 });

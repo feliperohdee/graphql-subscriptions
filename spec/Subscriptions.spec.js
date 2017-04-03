@@ -179,18 +179,26 @@ describe('Subscriptions.js', () => {
 
                 const sub1 = subscriptions.subscribe(ref1, namespace, event, queries[0], {
                     name: 'Rohde'
+                }, {
+                    auth: {}
                 });
 
                 const sub2 = subscriptions.subscribe(ref2, namespace, event, queries[1], {
                     name: 'Rohde'
+                }, {
+                    auth: {}
                 });
 
                 const sub3 = subscriptions.subscribe(ref3, namespace + 1, event, queries[1], {
                     name: 'Rohde'
+                }, {
+                    auth: {}
                 });
 
                 const sub4 = subscriptions.subscribe(ref4, namespace, event + 1, queries[1], {
                     name: 'Rohde'
+                }, {
+                    auth: {}
                 });
 
                 const sub1Refs = _.get(subscriptions.subscriptions, `${namespace}.${event}.${sub1}.subscribers`);
@@ -208,7 +216,11 @@ describe('Subscriptions.js', () => {
                                 city: undefined,
                                 name: 'Rohde',
                             },
-                            hash: 'eea94b2335eb866301de6bb89d564cea',
+                            context: {
+                                auth: {},
+                                auth2: {}
+                            },
+                            hash: '69ad83b324531f979aca7a56cc32047c',
                             namespace: 'namespace',
                             operationName: 'changeUser',
                             query: {
@@ -235,7 +247,11 @@ describe('Subscriptions.js', () => {
                                 city: undefined,
                                 name: 'Rohde',
                             },
-                            hash: 'd62bc3d210410214da8f4d4ab7e5ed9b',
+                            context: {
+                                auth: {},
+                                auth2: {}
+                            },
+                            hash: '84e15e7de349e804f7ec7db0dfe91c03',
                             namespace: 'namespace',
                             operationName: null,
                             query: {
@@ -262,7 +278,11 @@ describe('Subscriptions.js', () => {
                                 city: undefined,
                                 name: 'Rohde',
                             },
-                            hash: 'd62bc3d210410214da8f4d4ab7e5ed9b',
+                            context: {
+                                auth: {},
+                                auth2: {}
+                            },
+                            hash: '84e15e7de349e804f7ec7db0dfe91c03',
                             namespace: 'namespace1',
                             operationName: null,
                             query: {
@@ -288,10 +308,14 @@ describe('Subscriptions.js', () => {
 
                 subscriptions.run(namespace, event, {
                     age: 20
+                }, {
+                    auth2: {}
                 });
 
                 subscriptions.run(namespace + 1, event, {
                     age: 20
+                }, {
+                    auth2: {}
                 });
             });
         });
@@ -366,7 +390,11 @@ describe('Subscriptions.js', () => {
         });
 
         it('should throw if subscriber not object', () => {
-            expect(() => subscriptions.subscribe('string', namespace, event, `subscription {user{name}}`)).to.throw('Subscriber must be an object');
+            expect(() => subscriptions.subscribe('string', namespace, event, `subscription {user{name}}`)).to.throw('Subscriber must be an object.');
+        });
+
+        it('should throw if context not plain object', () => {
+            expect(() => subscriptions.subscribe({}, namespace, event, `subscription {user{name}}`, {}, new Map())).to.throw('context should be a plain object.');
         });
 
         it('should throw if multiple roots', () => {
@@ -387,7 +415,7 @@ describe('Subscriptions.js', () => {
             `)).to.throw('GraphQLError: Subscriptions do not support fragments on the root field');
         });
 
-        it('should return hash based on query and variables', () => {
+        it('should return hash based on query, variables and context', () => {
             const sub1 = subscriptions.subscribe({}, namespace, event, queries[0], {
                 age: 20
             });
@@ -404,13 +432,21 @@ describe('Subscriptions.js', () => {
                 age: 21
             });
 
-            expect(sub1).to.equal('ee108784308025e4f58051b7d7347319');
-            expect(sub2).to.equal('ee108784308025e4f58051b7d7347319');
-            expect(sub3).to.equal('a66e2d84ccc6bd013f0966619f98a253');
-            expect(sub4).to.equal('6911c50c1a520962c00e7e3390352c35');
+            const sub5 = subscriptions.subscribe({}, namespace, event, queries[1], {
+                age: 21
+            }, {
+                auth: {}
+            });
+
+            expect(sub1).to.equal('9bf2218dde7d577a41692bcd2faa5a24');
+            expect(sub2).to.equal('9bf2218dde7d577a41692bcd2faa5a24');
+            expect(sub3).to.equal('c45682c768a5c33d31721e0b221d0202');
+            expect(sub4).to.equal('bd85b637bc7b30cb50da4f3c8110767d');
+            expect(sub5).to.equal('947cadfd8f79a212fb1388b2d2b38f77');
             expect(sub1).to.equal(sub2);
             expect(sub2).not.to.equal(sub3);
             expect(sub3).not.to.equal(sub4);
+            expect(sub4).not.to.equal(sub5);
         });
 
         it('should create subscriptions', () => {

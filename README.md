@@ -20,6 +20,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 	### Subscriptions
 		stream: Observable<{
 			args: object,
+			context: object,
 			event: string,
 			hash: string,
 			namespace: string,
@@ -31,8 +32,8 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			variables: object
 		}>;
 		constructor(schema: GraphQLSchema, concurrency: Number = Number.MAX_SAFE_INTEGER);
-		run(namespace: string, event: string, root?: object = {}, context?: object = {}): void;
-		subscribe(subscriber: object, namespace: string, event: string, variables?: object = {}): string (subscription hash);
+		run(namespace: string, event: string, root?: object = {}, extendContext?: object = {}): void;
+		subscribe(subscriber: object, namespace: string, event: string, variables?: object = {}, context?: object = {}): string (subscription hash);
 		unsubscribe(subscriber: object, namespace?: string, event?: string, hash?: string): void;
 
 	### PushControl

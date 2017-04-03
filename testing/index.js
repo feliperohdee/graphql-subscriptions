@@ -15,9 +15,10 @@ const queries = [
             age
         }
     }`,
-    `subscription changeUser($name: String!, $age: Int, $city: String) {
+    `subscription ($name: String!, $age: Int, $city: String) {
         user(name: $name, age: $age, city: $city) {
             name
+            city
             age
         }
     }`

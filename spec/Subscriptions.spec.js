@@ -235,13 +235,14 @@ describe('Subscriptions.js', () => {
                                 city: undefined,
                                 name: 'Rohde',
                             },
-                            hash: '9c7aef8b73b41818d7b10c9c685cd82c',
+                            hash: 'd62bc3d210410214da8f4d4ab7e5ed9b',
                             namespace: 'namespace',
-                            operationName: 'changeUser',
+                            operationName: null,
                             query: {
                                 data: {
                                     user: {
                                         age: 20,
+                                        city: null,
                                         name: 'Rohde'
                                     }
                                 }
@@ -261,13 +262,14 @@ describe('Subscriptions.js', () => {
                                 city: undefined,
                                 name: 'Rohde',
                             },
-                            hash: '9c7aef8b73b41818d7b10c9c685cd82c',
+                            hash: 'd62bc3d210410214da8f4d4ab7e5ed9b',
                             namespace: 'namespace1',
-                            operationName: 'changeUser',
+                            operationName: null,
                             query: {
                                 data: {
                                     user: {
                                         age: 20,
+                                        city: null,
                                         name: 'Rohde'
                                     }
                                 }
@@ -367,10 +369,6 @@ describe('Subscriptions.js', () => {
             expect(() => subscriptions.subscribe('string', namespace, event, `subscription {user{name}}`)).to.throw('Subscriber must be an object');
         });
 
-        it('should throw if no operationName', () => {
-            expect(() => subscriptions.subscribe({}, namespace, event, `subscription {user{name}}`)).to.throw('GraphQLError: Small Orange subscriptions must have an operationName');
-        });
-
         it('should throw if multiple roots', () => {
             expect(() => subscriptions.subscribe({}, namespace, event, `subscription changeUser{user{name} user{name}}`)).to.throw('GraphQLError: Subscription "changeUser" must have only one field.');
         });
@@ -386,7 +384,7 @@ describe('Subscriptions.js', () => {
                         name
                     }
                 }
-            `)).to.throw('GraphQLError: Small Orange subscriptions do not support fragments on the root field');
+            `)).to.throw('GraphQLError: Subscriptions do not support fragments on the root field');
         });
 
         it('should return hash based on query and variables', () => {
@@ -408,8 +406,8 @@ describe('Subscriptions.js', () => {
 
             expect(sub1).to.equal('ee108784308025e4f58051b7d7347319');
             expect(sub2).to.equal('ee108784308025e4f58051b7d7347319');
-            expect(sub3).to.equal('c483a253b7fc2dba1452b11e6bce3077');
-            expect(sub4).to.equal('9c7b68de7cb7c3cdd66b86327ad3fc60');
+            expect(sub3).to.equal('a66e2d84ccc6bd013f0966619f98a253');
+            expect(sub4).to.equal('6911c50c1a520962c00e7e3390352c35');
             expect(sub1).to.equal(sub2);
             expect(sub2).not.to.equal(sub3);
             expect(sub3).not.to.equal(sub4);

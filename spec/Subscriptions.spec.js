@@ -212,8 +212,6 @@ describe('Subscriptions.js', () => {
                     .subscribe(response => {
                         expect(response).to.deep.equal([{
                             args: {
-                                age: undefined,
-                                city: undefined,
                                 name: 'Rohde',
                             },
                             context: {
@@ -243,8 +241,6 @@ describe('Subscriptions.js', () => {
                             }
                         }, {
                             args: {
-                                age: undefined,
-                                city: undefined,
                                 name: 'Rohde',
                             },
                             context: {
@@ -274,8 +270,6 @@ describe('Subscriptions.js', () => {
                             }
                         }, {
                             args: {
-                                age: undefined,
-                                city: undefined,
                                 name: 'Rohde',
                             },
                             context: {

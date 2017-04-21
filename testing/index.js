@@ -21,6 +21,20 @@ const queries = [
             city
             age
         }
+    }`,
+    `subscription ($name: String!, $age: Int, $city: String) {
+        userWithSingleEvent(name: $name, age: $age, city: $city) {
+            name
+            city
+            age
+        }
+    }`,
+    `subscription ($name: String!, $age: Int, $city: String) {
+        userWithoutEvents(name: $name, age: $age, city: $city) {
+            name
+            city
+            age
+        }
     }`
 ];
 
@@ -52,6 +66,49 @@ const schema = new GraphQLSchema({
         name: 'SubscriptionType',
         fields: {
             user: {
+                type: UserType,
+                events: {
+                    namespace: [
+                        'event',
+                        'anotherEvent'
+                    ]
+                },
+                args: {
+                    age: {
+                        type: GraphQLInt
+                    },
+                    city: {
+                        type: GraphQLString
+                    },
+                    name: {
+                        type: GraphQLString
+                    }
+                },
+                resolve: (root, args) => {
+                    return Object.assign({}, root, args);
+                }
+            },
+            userWithSingleEvent: {
+                type: UserType,
+                events: {
+                    namespace: 'event'
+                },
+                args: {
+                    age: {
+                        type: GraphQLInt
+                    },
+                    city: {
+                        type: GraphQLString
+                    },
+                    name: {
+                        type: GraphQLString
+                    }
+                },
+                resolve: (root, args) => {
+                    return Object.assign({}, root, args);
+                }
+            },
+            userWithoutEvents: {
                 type: UserType,
                 args: {
                     age: {

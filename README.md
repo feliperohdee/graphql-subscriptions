@@ -10,7 +10,7 @@ This is a simple GraphQl subscriptions manager, it takes care to group similar q
 
 It doesn't take care subscribe to your pub/sub mechanism, you should do it by yourself and call run when some event happens, this way, you have freedom to choose the best implementation type for your app. If u're using Redis, you shouldn't create a channel for each event type, instead, you cant just pass an object along with this info, redis is very sensitive with many channels, so, it avoids CPU and memory overhead at Redis machine ;), if you don't know how to do this, you should study more.
 
-It doesn't take care to broadcast messages to right subscribers, it just broadcast, at this way, you can plug in your custom ACL implementation to keep with a single point of truthness, if you don't have one you can use our embedded `PushControl` and be happy.
+It doesn't take care to broadcast messages to right subscribers, it just broadcast, at this way, you can plug in your custom ACL implementation to keep with a single point of truthness.
 
 ## Important
 
@@ -33,21 +33,12 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		}>;
 		constructor(schema: GraphQLSchema, concurrency: Number = Number.MAX_SAFE_INTEGER);
 		run(namespace: string, event: string, root?: object = {}, extendContext?: object = {}): void;
-		subscribe(subscriber: object, namespace: string, event: string, variables?: object = {}, context?: object = {}): string (subscription hash);
-		unsubscribe(subscriber: object, namespace?: string, event?: string, hash?: string): void;
-
-	### PushControl
-		stream: Observable;
-		constructor(subscriptions: Subscriptions, operations: object, callback: function);
-		push(response: object, filter: function = () => true): void;
-		subscribe(next: function, error: function, complete: function): void;
+		subscribe(subscriber: object, variables?: object = {}, context?: object = {}): string (subscription hash);
+		unsubscribe(subscriber: object, hash?: string): void;
 
 ## Sample
 
-		const {
-			Subscriptions,
-			PushControl
-		} = require('smallorange-graphql-subscriptions');
+		const Subscriptions = require('smallorange-graphql-subscriptions');
 		const {
 			Redis
 		} = require('smallorange-redis-client');
@@ -66,6 +57,13 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		        fields: {
 		            user: {
 		                type: UserType,
+		                // declare namespace and events whose should trigger this subscription
+		                events: {
+		                    myNamespace: [
+		                        'userUpdate',
+		                        'userDelete'
+		                    ]
+		                },
 		                args: {
 		                    age: {
 		                        type: GraphQLInt
@@ -86,7 +84,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		});
 		
 		const redis = new Redis();
-		const subscriptions = new Subscriptions(schema, 10); // 10 is max concurrency
+		const subscriptions = new Subscriptions(schema, 10); // 10 is the concurrency
 		
 		const query = `subscription($name: String!, $age: Int, $city: String) {
 		        user(name: $name, age: $age, city: $city) {
@@ -102,12 +100,12 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			}
 		};
 		
-		const subscriptionHash = subscriptions.subscribe(pseudoWebSocketClient, 'myNamespace', 'addComment', query);
+		const subscriptionHash = subscriptions.subscribe(pseudoWebSocketClient, query);
 
 		redis.onChannel('updateStream', ({
-			namespace,
-			event,
-			data
+			namespace, //'myNamespace'
+			event, //'updateUser'
+			data // {age: 20}
 		}) => {
 			graphqlSubscriptions.run(namespace, event, data);
 		});
@@ -133,13 +131,13 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
     		// is gonna send to all subscribers
 			//
 			// {
-			//	   operationName: 'addComment',
+			//	   operationName: 'userUpdate',
 			//     query: {
 			//         data: {
 			//             user: {
 			//                 age: 20,
 			//                 city: null,
-			//                 name: 'Rohde'
+			//                 name: null
 			//             }
 			//         }
 			//     },
@@ -148,34 +146,3 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			//     },
 			//     event: 'event'
 			// }
-
-			// or use with pushControl
-
-			const operations = {
-				commentAdded: (response, subscriber) => {
-					const filter = (response, subscriber) => response.id === subscriber.id;
-
-					push(response, filter); // push will iterate response over subscribers applying optional filter
-				}
-			};
-
-			const sendToWs = (ws, response) => {
-				const {
-					query
-				} = response;
-
-				ws.send(query);
-			};
-
-			const pushControl = new PushControl(subcriptions, operations, sendToWs);
-
-			pushControl
-				.retryWhen(err => {
-					return err
-						.do(console.error);
-				});
-				.subscribe();
-
-			// and it will take care to run a filter for each subscriber and call callback when it passes
-
-			subscriptions.unsubscribe(pseudoWebSocketClient, 'addComment', 'myNamespace', subscriptionHash);

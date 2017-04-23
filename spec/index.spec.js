@@ -2,13 +2,17 @@ const _ = require('lodash');
 const chai = require('chai');
 const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
-const lazyExecutor = require('smallorange-graphql-lazy-executor');
 const {
     Observable
 } = require('rxjs');
+const {
+    parse,
+    printSchema
+} = require('graphql');
 
 const {
     event,
+    events,
     namespace,
     queries,
     schema,
@@ -20,19 +24,32 @@ chai.use(sinonChai);
 
 const expect = chai.expect;
 
-describe('index.js', () => {
+describe.only('index.js', () => {
     let subscriptions;
 
     beforeEach(() => {
-        subscriptions = new Subscriptions(schema);
+        subscriptions = new Subscriptions(schema, events);
     });
 
     describe('constructor', () => {
+        beforeEach(() => {
+           sinon.spy(Subscriptions.prototype, 'setExecutor'); 
+        });
+
+        afterEach(() => {
+           Subscriptions.prototype.setExecutor.restore();
+        });
+
         it('should throw if no schema', () => {
-            expect(() => new Subscriptions()).to.throw('No GraphQL schema provided');
+            expect(() => new Subscriptions()).to.throw('No GraphQL schema provided.');
         });
 
         it('should feed schema', () => {
+            expect(subscriptions.schema).to.be.an('object');
+        });
+
+        it('should parse schema if string provided', () => {
+            subscriptions = new Subscriptions(printSchema(schema));
             expect(subscriptions.schema).to.be.an('object');
         });
 
@@ -40,8 +57,16 @@ describe('index.js', () => {
             expect(subscriptions.concurrency).to.equal(Number.MAX_SAFE_INTEGER);
         });
 
+        it('should feed custom executor', () => {
+            const executor = () => null;
+            subscriptions = new Subscriptions(schema, events, executor, 4);
+            
+            expect(Subscriptions.prototype.setExecutor).to.have.been.calledWith(executor);
+            expect(subscriptions.executor).to.equal(executor);
+        });
+
         it('should feed custom concurrency', () => {
-            subscriptions = new Subscriptions(schema, 4);
+            subscriptions = new Subscriptions(schema, events, null, 4);
             expect(subscriptions.concurrency).to.equal(4);
         });
 
@@ -397,6 +422,23 @@ describe('index.js', () => {
         });
     });
 
+    describe('setExecutor', () => {
+        it('should return default executor', () => {
+           expect(subscriptions.setExecutor()).to.be.a('function'); 
+        });
+
+        it('should return default executor if no function provided', () => {
+
+           expect(subscriptions.setExecutor('string')).to.be.a('function'); 
+        });
+
+        it('should return custom executor if function provided', () => {
+            const executor = () => null;
+
+           expect(subscriptions.setExecutor(executor)).to.equal(executor); 
+        });
+    });
+
     describe('run', () => {
         beforeEach(() => {
             sinon.spy(subscriptions.inbound, 'next');
@@ -438,22 +480,22 @@ describe('index.js', () => {
 
     describe('subscribe', () => {
         beforeEach(() => {
-            sinon.spy(subscriptions, 'extractQueryData');
+            sinon.spy(subscriptions, 'getQueryData');
         });
 
         afterEach(() => {
-            subscriptions.extractQueryData.restore();
+            subscriptions.getQueryData.restore();
         });
 
         it('should do nothing if no subscriber', () => {
             expect(subscriptions.subscribe()).to.be.undefined;
-            expect(subscriptions.extractQueryData)
+            expect(subscriptions.getQueryData)
                 .not.to.have.been.called;
         });
 
         it('should do nothing if no query', () => {
             expect(subscriptions.subscribe({})).to.be.undefined;
-            expect(subscriptions.extractQueryData)
+            expect(subscriptions.getQueryData)
                 .not.to.have.been.called;
         });
 
@@ -480,7 +522,7 @@ describe('index.js', () => {
                         name
                     }
                 }
-            `)).to.throw('GraphQLError: Subscriptions do not support fragments on the root field');
+            `)).to.throw('GraphQLError: Subscriptions do not support fragments on the root field.');
         });
 
         it('should return hashes based on query, variables and context', () => {
@@ -735,35 +777,11 @@ describe('index.js', () => {
         });
     });
 
-    describe('extractQueryData', () => {
+    describe('getQueryData', () => {
         it('should extract query data from parsed query', () => {
-            const executor = lazyExecutor(schema, queries[0]);
+            const parsedQuery = parse(queries[0]);
 
-            expect(subscriptions.extractQueryData(schema, executor.parsedQuery, {
-                name: 'Rohde',
-                age: 20,
-                city: 'San Francisco',
-                unknownVariable: null
-            })).to.deep.equal([{
-                args: {
-                    name: 'Rohde',
-                    age: 20,
-                    city: 'San Francisco'
-                },
-                events: {
-                    namespace: [
-                        'event',
-                        'anotherEvent'
-                    ]
-                },
-                operationName: 'changeUser',
-                rootAlias: null,
-                rootName: 'user'
-            }]);
-        });
-
-        it('should extract query data from string query', () => {
-            expect(subscriptions.extractQueryData(schema, queries[0], {
+            expect(subscriptions.getQueryData(schema, parsedQuery, {
                 name: 'Rohde',
                 age: 20,
                 city: 'San Francisco',
@@ -787,9 +805,9 @@ describe('index.js', () => {
         });
 
         it('should return null if no subscription event', () => {
-            const executor = lazyExecutor(noSubscriptionSchema, queries[0]);
+            const parsedQuery = parse(queries[0]);
 
-            expect(subscriptions.extractQueryData(noSubscriptionSchema, executor.parsedQuery, {
+            expect(subscriptions.getQueryData(noSubscriptionSchema, parsedQuery, {
                 name: 'Rohde',
                 age: 20,
                 city: 'San Francisco',

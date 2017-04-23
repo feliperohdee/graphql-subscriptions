@@ -7,6 +7,19 @@ const {
 
 const event = 'event';
 const namespace = 'namespace';
+
+const events = {
+    user: {
+        namespace: [
+            'event',
+            'anotherEvent'
+        ]
+    },
+    userWithSingleEvent: {
+        namespace: 'event'
+    }
+};
+
 const queries = [
     `subscription changeUser($name: String!, $age: Int, $city: String) {
         user(name: $name, age: $age, city: $city) {
@@ -67,12 +80,6 @@ const schema = new GraphQLSchema({
         fields: {
             user: {
                 type: UserType,
-                events: {
-                    namespace: [
-                        'event',
-                        'anotherEvent'
-                    ]
-                },
                 args: {
                     age: {
                         type: GraphQLInt
@@ -90,9 +97,6 @@ const schema = new GraphQLSchema({
             },
             userWithSingleEvent: {
                 type: UserType,
-                events: {
-                    namespace: 'event'
-                },
                 args: {
                     age: {
                         type: GraphQLInt
@@ -142,6 +146,7 @@ const noSubscriptionSchema = new GraphQLSchema({
 
 module.exports = {
     event,
+    events,
     namespace,
     queries,
     schema,

@@ -31,7 +31,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			subscribers: Set<object>,
 			variables: object
 		}>;
-		constructor(schema: GraphQLSchema, concurrency: Number = Number.MAX_SAFE_INTEGER);
+		constructor(schema: GraphQLSchema, events: object = {}, executor: function = (/* args like http://graphql.org/graphql-js/execution/#execute*/) => Observable, concurrency: Number = Number.MAX_SAFE_INTEGER);
 		run(namespace: string, event: string, root?: object = {}, extendContext?: object = {}): void;
 		subscribe(subscriber: object, variables?: object = {}, context?: object = {}): string (subscription hash);
 		unsubscribe(subscriber: object, hash?: string): void;
@@ -57,13 +57,6 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		        fields: {
 		            user: {
 		                type: UserType,
-		                // declare namespace and events whose should trigger this subscription
-		                events: {
-		                    myNamespace: [
-		                        'userUpdate',
-		                        'userDelete'
-		                    ]
-		                },
 		                args: {
 		                    age: {
 		                        type: GraphQLInt
@@ -82,9 +75,25 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		        }
 		    })
 		});
+
+		// declare queries name, and namespace and events whose should trigger this subscription
+        const events = {
+        	// query name
+        	user: {
+        		// namespace, it could be the resource it belongs to, or any, is just to separate events by namespace
+	            userNamespace: [
+	            	//events, it can be an array or a single string
+	                'userUpdate',
+	                'userDelete'
+	            ]
+        	}
+        };
 		
 		const redis = new Redis();
-		const subscriptions = new Subscriptions(schema, 10); // 10 is the concurrency
+
+		// 3rd argument is a custom query executor, it should follow the same default graphQL-js execute signature (http://graphql.org/graphql-js/execution/#execute) but might return an Observable, in our case, we use a remote executor into an AWS lambda, if you provide null, it will use default graphQL-js execute function
+		// 4th agument is max concurrency
+		const subscriptions = new Subscriptions(schema, events, null, 10);
 		
 		const query = `subscription($name: String!, $age: Int, $city: String) {
 		        user(name: $name, age: $age, city: $city) {

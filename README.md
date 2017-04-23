@@ -4,7 +4,7 @@
 
 ## Wht it does
 
-This is a simple GraphQl subscriptions manager, it takes care to group similar queries which belongs to same namespace, type and variables, runs with maximum concurrency (thank u rxjs again), and dispatch data via stream.
+This is a simple GraphQl subscriptions manager, it takes care to group similar subscriptions which belongs to same namespace, type and variables, runs with maximum concurrency (thank u rxjs again), and dispatch data via stream.
 
 ## Wht is doesn't
 
@@ -14,7 +14,7 @@ It doesn't take care to broadcast messages to right subscribers, it just broadca
 
 ## Important
 
-Subscribers are objects that you intend to send messages afterwards, this lib takes care to manage internal subscriptions state, but once one subscriber is removed (eg. a WebSocket client's close event) you should call unsubscribe(subscriber) manually to remove remove subscribed queries for there;
+Subscribers are objects that you intend to send messages afterwards, this lib takes care to manage internal subscriptions state, but once one subscriber is removed (eg. a WebSocket client's close event) you should call unsubscribe(subscriber) manually to remove remove subscription request for there;
 
 ## API
 	### Subscriptions
@@ -25,7 +25,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			hash: string,
 			namespace: string,
 			operationName: string,
-			query: object,
+			response: object,
 			root: object,
 			rootName: string,
 			subscribers: Set<object>,
@@ -76,9 +76,9 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		    })
 		});
 
-		// declare queries name, and namespace and events whose should trigger this subscription
+		// declare root names, and namespace and events whose should trigger this subscription
         const events = {
-        	// query name
+        	// root name
         	user: {
         		// namespace, it could be the resource it belongs to, or any, is just to separate events by namespace
 	            userNamespace: [
@@ -91,11 +91,11 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		
 		const redis = new Redis();
 
-		// 3rd argument is a custom query executor, it should follow the same default graphQL-js execute signature (http://graphql.org/graphql-js/execution/#execute) but might return an Observable, in our case, we use a remote executor into an AWS lambda, if you provide null, it will use default graphQL-js execute function
+		// 3rd argument is a custom executor, it should follow the same default graphQL-js execute signature (http://graphql.org/graphql-js/execution/#execute) but might return an Observable, in our case, we use a remote executor into an AWS lambda, if you provide null, it will use default graphQL-js execute function
 		// 4th agument is max concurrency
 		const subscriptions = new Subscriptions(schema, events, null, 10);
 		
-		const query = `subscription($name: String!, $age: Int, $city: String) {
+		const subscription = `subscription($name: String!, $age: Int, $city: String) {
 		        user(name: $name, age: $age, city: $city) {
 		            name
 		            city
@@ -109,7 +109,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			}
 		};
 		
-		const subscriptionHash = subscriptions.subscribe(pseudoWebSocketClient, query);
+		const subscriptionHash = subscriptions.subscribe(pseudoWebSocketClient, subscription);
 
 		redis.onChannel('updateStream', ({
 			namespace, //'myNamespace'
@@ -124,14 +124,14 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		subscriptions.stream
 		    .subscribe(({
 		    		operationName,
-		    		query,
+		    		response,
 		    		root,
 		    		subscribers,
 		    		event
 		    	}) => {
 		    		subscribers.forEach(subscriber => subscriber.send({
 		    			operationName,
-		    			query,
+		    			response,
 		    			root,
 		    			event
 		    		}));
@@ -141,7 +141,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			//
 			// {
 			//	   operationName: 'userUpdate',
-			//     query: {
+			//     response: {
 			//         data: {
 			//             user: {
 			//                 age: 20,

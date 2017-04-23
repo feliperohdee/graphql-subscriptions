@@ -247,7 +247,7 @@ describe.only('index.js', () => {
                             hash: '69ad83b324531f979aca7a56cc32047c',
                             namespace: 'namespace',
                             operationName: 'changeUser',
-                            query: {
+                            response: {
                                 data: {
                                     user: {
                                         age: 20,
@@ -279,7 +279,7 @@ describe.only('index.js', () => {
                             hash: '84e15e7de349e804f7ec7db0dfe91c03',
                             namespace: 'namespace',
                             operationName: null,
-                            query: {
+                            response: {
                                 data: {
                                     user: {
                                         age: 20,
@@ -311,7 +311,7 @@ describe.only('index.js', () => {
                             hash: '4c5db9f456b132e72f77939b2d322796',
                             namespace: 'namespace',
                             operationName: null,
-                            query: {
+                            response: {
                                 data: {
                                     userWithSingleEvent: {
                                         age: 20,
@@ -343,7 +343,7 @@ describe.only('index.js', () => {
                             hash: '69ad83b324531f979aca7a56cc32047c',
                             namespace: 'namespace',
                             operationName: 'changeUser',
-                            query: {
+                            response: {
                                 data: {
                                     user: {
                                         age: 20,
@@ -375,7 +375,7 @@ describe.only('index.js', () => {
                             hash: '84e15e7de349e804f7ec7db0dfe91c03',
                             namespace: 'namespace',
                             operationName: null,
-                            query: {
+                            response: {
                                 data: {
                                     user: {
                                         age: 20,
@@ -480,22 +480,22 @@ describe.only('index.js', () => {
 
     describe('subscribe', () => {
         beforeEach(() => {
-            sinon.spy(subscriptions, 'getQueryData');
+            sinon.spy(subscriptions, 'getAstData');
         });
 
         afterEach(() => {
-            subscriptions.getQueryData.restore();
+            subscriptions.getAstData.restore();
         });
 
         it('should do nothing if no subscriber', () => {
             expect(subscriptions.subscribe()).to.be.undefined;
-            expect(subscriptions.getQueryData)
+            expect(subscriptions.getAstData)
                 .not.to.have.been.called;
         });
 
         it('should do nothing if no query', () => {
             expect(subscriptions.subscribe({})).to.be.undefined;
-            expect(subscriptions.getQueryData)
+            expect(subscriptions.getAstData)
                 .not.to.have.been.called;
         });
 
@@ -777,11 +777,11 @@ describe.only('index.js', () => {
         });
     });
 
-    describe('getQueryData', () => {
+    describe('getAstData', () => {
         it('should extract query data from parsed query', () => {
             const parsedQuery = parse(queries[0]);
 
-            expect(subscriptions.getQueryData(schema, parsedQuery, {
+            expect(subscriptions.getAstData(schema, parsedQuery, {
                 name: 'Rohde',
                 age: 20,
                 city: 'San Francisco',
@@ -807,7 +807,7 @@ describe.only('index.js', () => {
         it('should return null if no subscription event', () => {
             const parsedQuery = parse(queries[0]);
 
-            expect(subscriptions.getQueryData(noSubscriptionSchema, parsedQuery, {
+            expect(subscriptions.getAstData(noSubscriptionSchema, parsedQuery, {
                 name: 'Rohde',
                 age: 20,
                 city: 'San Francisco',

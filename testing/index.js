@@ -9,15 +9,14 @@ const event = 'event';
 const namespace = 'namespace';
 
 const events = {
-    user: {
-        namespace: [
-            'event',
-            'anotherEvent'
-        ]
-    },
-    userWithSingleEvent: {
-        namespace: 'event'
-    }
+    user: [
+        0,
+        'event',
+        false,
+        'anotherEvent',
+        null
+    ],
+    userWithSingleEvent: 'event'
 };
 
 const queries = [

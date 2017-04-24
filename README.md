@@ -79,14 +79,11 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		// declare root names, and namespace and events whose should trigger this subscription
         const events = {
         	// root name
-        	user: {
-        		// namespace, it could be the resource it belongs to, or any, is just to separate events by namespace
-	            userNamespace: [
-	            	//events, it can be an array or a single string
-	                'userUpdate',
-	                'userDelete'
-	            ]
-        	}
+        	user: [
+        		// events
+                'user.update',
+                'user.delete'
+            ]
         };
 		
 		const redis = new Redis();
@@ -109,11 +106,11 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			}
 		};
 		
-		const subscriptionHash = subscriptions.subscribe(pseudoWebSocketClient, subscription);
+		const subscriptionHash = subscriptions.subscribe(pseudoWebSocketClient, 'someNamespace', subscription);
 
 		redis.onChannel('updateStream', ({
 			namespace, //'myNamespace'
-			event, //'updateUser'
+			event, //'user.update'
 			data // {age: 20}
 		}) => {
 			graphqlSubscriptions.run(namespace, event, data);

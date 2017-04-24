@@ -33,11 +33,11 @@ describe.only('index.js', () => {
 
     describe('constructor', () => {
         beforeEach(() => {
-           sinon.spy(Subscriptions.prototype, 'setExecutor'); 
+            sinon.spy(Subscriptions.prototype, 'setExecutor');
         });
 
         afterEach(() => {
-           Subscriptions.prototype.setExecutor.restore();
+            Subscriptions.prototype.setExecutor.restore();
         });
 
         it('should throw if no schema', () => {
@@ -60,7 +60,7 @@ describe.only('index.js', () => {
         it('should feed custom executor', () => {
             const executor = () => null;
             subscriptions = new Subscriptions(schema, events, executor, 4);
-            
+
             expect(Subscriptions.prototype.setExecutor).to.have.been.calledWith(executor);
             expect(subscriptions.executor).to.equal(executor);
         });
@@ -78,19 +78,18 @@ describe.only('index.js', () => {
             it('should do nothing if no namespace', done => {
                 const result = [];
 
-                subscriptions.subscribe({}, queries[0], {
+                subscriptions.subscribe({}, namespace, queries[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe({}, queries[1], {
+                subscriptions.subscribe({}, namespace, queries[1], {
                     name: 'Rohde'
                 });
 
                 subscriptions.stream
                     .timeoutWith(10, Observable.empty())
                     .subscribe(result.push.bind(result), null, () => {
-                        expect(result)
-                            .to.deep.equal([]);
+                        expect(result).to.deep.equal([]);
                         done();
                     });
 
@@ -100,19 +99,18 @@ describe.only('index.js', () => {
             it('should do nothing if namespace not found', done => {
                 const result = [];
 
-                subscriptions.subscribe({}, queries[0], {
+                subscriptions.subscribe({}, namespace, queries[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe({}, queries[1], {
+                subscriptions.subscribe({}, namespace, queries[1], {
                     name: 'Rohde'
                 });
 
                 subscriptions.stream
                     .timeoutWith(10, Observable.empty())
                     .subscribe(result.push.bind(result), null, () => {
-                        expect(result)
-                            .to.deep.equal([]);
+                        expect(result).to.deep.equal([]);
                         done();
                     });
 
@@ -122,19 +120,18 @@ describe.only('index.js', () => {
             it('should do nothing if no event', done => {
                 const result = [];
 
-                subscriptions.subscribe({}, queries[0], {
+                subscriptions.subscribe({}, namespace, queries[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe({}, queries[1], {
+                subscriptions.subscribe({}, namespace, queries[1], {
                     name: 'Rohde'
                 });
 
                 subscriptions.stream
                     .timeoutWith(10, Observable.empty())
                     .subscribe(result.push.bind(result), null, () => {
-                        expect(result)
-                            .to.deep.equal([]);
+                        expect(result).to.deep.equal([]);
                         done();
                     });
 
@@ -144,19 +141,18 @@ describe.only('index.js', () => {
             it('should do nothing if event not found', done => {
                 const result = [];
 
-                subscriptions.subscribe({}, queries[0], {
+                subscriptions.subscribe({}, namespace, queries[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe({}, queries[1], {
+                subscriptions.subscribe({}, namespace, queries[1], {
                     name: 'Rohde'
                 });
 
                 subscriptions.stream
                     .timeoutWith(10, Observable.empty())
                     .subscribe(result.push.bind(result), null, () => {
-                        expect(result)
-                            .to.deep.equal([]);
+                        expect(result).to.deep.equal([]);
                         done();
                     });
 
@@ -164,16 +160,15 @@ describe.only('index.js', () => {
             });
 
             it('should handle query error', done => {
-                subscriptions.subscribe({}, queries[0], {
+                subscriptions.subscribe({}, namespace, queries[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe({}, queries[1]);
+                subscriptions.subscribe({}, namespace, queries[1]);
 
                 subscriptions.stream
                     .subscribe(null, err => {
-                        expect(err.message)
-                            .to.equal('Variable "$name" of required type "String!" was not provided.');
+                        expect(err.message).to.equal('Variable "$name" of required type "String!" was not provided.');
                         done();
                     });
 
@@ -183,17 +178,16 @@ describe.only('index.js', () => {
             it('should handle no queries', done => {
                 const result = [];
 
-                subscriptions.subscribe({}, queries[0], {
+                subscriptions.subscribe({}, namespace, queries[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe({}, queries[1]);
+                subscriptions.subscribe({}, namespace, queries[1]);
 
                 subscriptions.stream
                     .timeoutWith(10, Observable.empty())
                     .subscribe(result.push.bind(result), null, () => {
-                        expect(result)
-                            .to.deep.equal([]);
+                        expect(result).to.deep.equal([]);
                         done();
                     });
 
@@ -206,25 +200,25 @@ describe.only('index.js', () => {
                 const ref3 = {};
                 const ref4 = {};
 
-                const sub1 = subscriptions.subscribe(ref1, queries[0], {
+                const sub1 = subscriptions.subscribe(ref1, namespace, queries[0], {
                     name: 'Rohde'
                 }, {
                     auth: {}
                 });
 
-                const sub2 = subscriptions.subscribe(ref2, queries[1], {
+                const sub2 = subscriptions.subscribe(ref2, namespace, queries[1], {
                     name: 'Rohde'
                 }, {
                     auth: {}
                 });
 
-                const sub3 = subscriptions.subscribe(ref3, queries[2], {
+                const sub3 = subscriptions.subscribe(ref3, namespace, queries[2], {
                     name: 'Rohde'
                 }, {
                     auth: {}
                 });
 
-                const sub4 = subscriptions.subscribe(ref4, queries[3], {
+                const sub4 = subscriptions.subscribe(ref4, namespace, queries[3], {
                     name: 'Rohde'
                 }, {
                     auth: {}
@@ -265,7 +259,7 @@ describe.only('index.js', () => {
                                 name: 'Rohde'
                             }
                         });
-                        
+
                         expect(response[1].subscribers.has(ref2)).to.be.true;
                         expect(response[1]).to.deep.equal({
                             args: {
@@ -297,7 +291,7 @@ describe.only('index.js', () => {
                                 name: 'Rohde'
                             }
                         });
-                        
+
                         expect(response[2].subscribers.has(ref3)).to.be.true;
                         expect(response[2]).to.deep.equal({
                             args: {
@@ -329,7 +323,7 @@ describe.only('index.js', () => {
                                 name: 'Rohde'
                             }
                         });
-                        
+
                         expect(response[3].subscribers.has(ref1)).to.be.true;
                         expect(response[3]).to.deep.equal({
                             args: {
@@ -361,7 +355,7 @@ describe.only('index.js', () => {
                                 name: 'Rohde'
                             }
                         });
-                        
+
                         expect(response[4].subscribers.has(ref2)).to.be.true;
                         expect(response[4]).to.deep.equal({
                             args: {
@@ -394,7 +388,7 @@ describe.only('index.js', () => {
                             }
                         });
                     }, null, done);
-                
+
                 subscriptions.run('inexistentNamespace', event, {
                     age: 20
                 }, {
@@ -424,18 +418,18 @@ describe.only('index.js', () => {
 
     describe('setExecutor', () => {
         it('should return default executor', () => {
-           expect(subscriptions.setExecutor()).to.be.a('function'); 
+            expect(subscriptions.setExecutor()).to.be.a('function');
         });
 
         it('should return default executor if no function provided', () => {
 
-           expect(subscriptions.setExecutor('string')).to.be.a('function'); 
+            expect(subscriptions.setExecutor('string')).to.be.a('function');
         });
 
         it('should return custom executor if function provided', () => {
             const executor = () => null;
 
-           expect(subscriptions.setExecutor(executor)).to.equal(executor); 
+            expect(subscriptions.setExecutor(executor)).to.equal(executor);
         });
     });
 
@@ -489,30 +483,33 @@ describe.only('index.js', () => {
 
         it('should do nothing if no subscriber', () => {
             expect(subscriptions.subscribe()).to.be.undefined;
-            expect(subscriptions.getAstData)
-                .not.to.have.been.called;
+            expect(subscriptions.getAstData).not.to.have.been.called;
         });
 
-        it('should do nothing if no query', () => {
+        it('should do nothing if no namespace', () => {
             expect(subscriptions.subscribe({})).to.be.undefined;
-            expect(subscriptions.getAstData)
-                .not.to.have.been.called;
+            expect(subscriptions.getAstData).not.to.have.been.called;
+        });
+
+        it('should do nothing if no subscription', () => {
+            expect(subscriptions.subscribe({}, namespace)).to.be.undefined;
+            expect(subscriptions.getAstData).not.to.have.been.called;
         });
 
         it('should throw if subscriber not object', () => {
-            expect(() => subscriptions.subscribe('string', namespace, event, `subscription {user{name}}`)).to.throw('Subscriber must be an object.');
+            expect(() => subscriptions.subscribe('string', namespace, `subscription {user{name}}`)).to.throw('Subscriber must be an object.');
         });
 
         it('should throw if context not plain object', () => {
-            expect(() => subscriptions.subscribe({}, `subscription {user{name}}`, {}, new Map())).to.throw('context should be a plain object.');
+            expect(() => subscriptions.subscribe({}, namespace, `subscription {user{name}}`, {}, new Map())).to.throw('context should be a plain object.');
         });
 
         it('should throw if multiple roots', () => {
-            expect(() => subscriptions.subscribe({}, `subscription changeUser{user{name} user{name}}`)).to.throw('GraphQLError: Subscription "changeUser" must have only one field.');
+            expect(() => subscriptions.subscribe({}, namespace, `subscription changeUser{user{name} user{name}}`)).to.throw('GraphQLError: Subscription "changeUser" must have only one field.');
         });
 
         it('should throw if fragments', () => {
-            expect(() => subscriptions.subscribe({}, `
+            expect(() => subscriptions.subscribe({}, namespace, `
                 subscription changeUser {
                     ...userInfo
                 }
@@ -526,35 +523,35 @@ describe.only('index.js', () => {
         });
 
         it('should return hashes based on query, variables and context', () => {
-            const sub1 = subscriptions.subscribe({}, queries[0], {
+            const sub1 = subscriptions.subscribe({}, namespace, queries[0], {
                 age: 20
             });
 
-            const sub2 = subscriptions.subscribe({}, queries[0], {
+            const sub2 = subscriptions.subscribe({}, namespace, queries[0], {
                 age: 20
             });
 
-            const sub3 = subscriptions.subscribe({}, queries[1], {
+            const sub3 = subscriptions.subscribe({}, namespace, queries[1], {
                 age: 20
             });
 
-            const sub4 = subscriptions.subscribe({}, queries[1], {
+            const sub4 = subscriptions.subscribe({}, namespace, queries[1], {
                 age: 21
             });
 
-            const sub5 = subscriptions.subscribe({}, queries[1], {
-                age: 21
-            }, {
-                auth: {}
-            });
-
-            const sub6 = subscriptions.subscribe({}, queries[2], {
+            const sub5 = subscriptions.subscribe({}, namespace, queries[1], {
                 age: 21
             }, {
                 auth: {}
             });
 
-            const sub7 = subscriptions.subscribe({}, queries[3], {
+            const sub6 = subscriptions.subscribe({}, namespace, queries[2], {
+                age: 21
+            }, {
+                auth: {}
+            });
+
+            const sub7 = subscriptions.subscribe({}, namespace, queries[3], {
                 age: 21
             }, {
                 auth: {}
@@ -598,7 +595,7 @@ describe.only('index.js', () => {
         });
 
         it('should create subscriptions for all namespaces and events', () => {
-            const sub1 = subscriptions.subscribe({}, queries[0], {
+            const sub1 = subscriptions.subscribe({}, namespace, queries[0], {
                 age: 20
             });
 
@@ -609,8 +606,8 @@ describe.only('index.js', () => {
         });
 
         it('should add subscribers', () => {
-            const subscribe1 = ref => subscriptions.subscribe(ref, queries[0]);
-            const subscribe2 = ref => subscriptions.subscribe(ref, queries[1]);
+            const subscribe1 = ref => subscriptions.subscribe(ref, namespace, queries[0]);
+            const subscribe2 = ref => subscriptions.subscribe(ref, namespace, queries[1]);
 
             const ref1 = {};
             const sub1 = subscribe1(ref1);
@@ -644,11 +641,11 @@ describe.only('index.js', () => {
         });
 
         it('should reuse shallow identic queries', () => {
-            const sub1 = subscriptions.subscribe({}, queries[0], {
+            const sub1 = subscriptions.subscribe({}, namespace, queries[0], {
                 age: 20
             });
 
-            const sub2 = subscriptions.subscribe({}, queries[0], {
+            const sub2 = subscriptions.subscribe({}, namespace, queries[0], {
                 age: 20
             });
 
@@ -660,11 +657,11 @@ describe.only('index.js', () => {
         });
 
         it('should not reuse shallow different queries', () => {
-            const sub1 = subscriptions.subscribe({}, queries[0], {
+            const sub1 = subscriptions.subscribe({}, namespace, queries[0], {
                 age: 20
             });
 
-            const sub2 = subscriptions.subscribe({}, queries[1], {
+            const sub2 = subscriptions.subscribe({}, namespace, queries[1], {
                 age: 20
             });
 
@@ -677,8 +674,8 @@ describe.only('index.js', () => {
     });
 
     describe('unsubscribe', () => {
-        const subscribe1 = ref => subscriptions.subscribe(ref, queries[0]);
-        const subscribe2 = ref => subscriptions.subscribe(ref, queries[1]);
+        const subscribe1 = ref => subscriptions.subscribe(ref, namespace, queries[0]);
+        const subscribe2 = ref => subscriptions.subscribe(ref, namespace, queries[1]);
         let ref1;
         let sub1;
         let ref2;
@@ -748,8 +745,8 @@ describe.only('index.js', () => {
         });
 
         it('should unsubscribe ref1 only on sub2', () => {
-            sub1 = subscriptions.subscribe(ref1, queries[0]);
-            sub2 = subscriptions.subscribe(ref1, queries[2]);
+            sub1 = subscriptions.subscribe(ref1, namespace, queries[0]);
+            sub2 = subscriptions.subscribe(ref1, namespace, queries[2]);
 
             _.each(sub1, sub => {
                 expect(_.get(subscriptions.subscriptions, `${sub}.subscribers`).has(ref1)).to.be.true;
@@ -792,16 +789,31 @@ describe.only('index.js', () => {
                     age: 20,
                     city: 'San Francisco'
                 },
-                events: {
-                    namespace: [
-                        'event',
-                        'anotherEvent'
-                    ]
-                },
+                events: [
+                    'event',
+                    'anotherEvent'
+                ],
                 operationName: 'changeUser',
                 rootAlias: null,
                 rootName: 'user'
             }]);
+        });
+
+        it('should return an array of string events', () => {
+            const parsedQuery = parse(queries[0]);
+
+            expect(subscriptions.getAstData(schema, parsedQuery)[0].events).to.deep.equal([
+                'event',
+                'anotherEvent'
+            ]);
+        });
+
+        it('should return an array of string events even when declared as string', () => {
+            const parsedQuery = parse(queries[2]);
+
+            expect(subscriptions.getAstData(schema, parsedQuery)[0].events).to.deep.equal([
+                'event'
+            ]);
         });
 
         it('should return null if no subscription event', () => {

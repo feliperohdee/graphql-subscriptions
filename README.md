@@ -33,7 +33,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		}>;
 		constructor(schema: GraphQLSchema, events: object = {}, executor: function = (/* args like http://graphql.org/graphql-js/execution/#execute*/) => Observable, concurrency: Number = Number.MAX_SAFE_INTEGER);
 		run(namespace: string, event: string, root?: object = {}, extendContext?: object = {}): void;
-		subscribe(subscriber: object, variables?: object = {}, context?: object = {}): string (subscription hash);
+		subscribe(namespace: string, subscriber: object, variables?: object = {}, context?: object = {}): string (subscription hash);
 		unsubscribe(subscriber: object, hash?: string): void;
 
 ## Sample
@@ -76,7 +76,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		    })
 		});
 
-		// declare root names, and namespace and events whose should trigger this subscription
+		// declare root names and events whose should trigger this subscription
         const events = {
         	// root name
         	user: [
@@ -106,7 +106,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			}
 		};
 		
-		const subscriptionHash = subscriptions.subscribe(pseudoWebSocketClient, 'someNamespace', subscription);
+		const subscriptionHash = subscriptions.subscribe('myNamespace', pseudoWebSocketClient, subscription);
 
 		redis.onChannel('updateStream', ({
 			namespace, //'myNamespace'

@@ -448,11 +448,11 @@ describe.only('index.js', () => {
                 event,
                 namespace,
                 root: {},
-                context: {}
+                extendContext: {}
             });
         });
 
-        it('should call inbound.next with custom root ans context', () => {
+        it('should call inbound.next with custom root and extendContext', () => {
             subscriptions.run(namespace, event, {
                 root: 'root'
             }, {
@@ -465,7 +465,7 @@ describe.only('index.js', () => {
                 root: {
                     root: 'root'
                 },
-                context: {
+                extendContext: {
                     context: 'context'
                 }
             });

@@ -33,7 +33,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		}>;
 		constructor(schema: GraphQLSchema, events: object = {}, executor: function = (/* args like http://graphql.org/graphql-js/execution/#execute*/) => Observable, concurrency: Number = Number.MAX_SAFE_INTEGER);
 		run(namespace: string, event: string, root?: object = {}, extendContext?: object = {}): void;
-		subscribe(namespace: string, subscriber: object, variables?: object = {}, context?: object = {}): string (subscription hash);
+		subscribe(namespace: string, subscriber: object, requestString: string, variables?: object = {}, context?: object = {}): string (subscription hash);
 		unsubscribe(subscriber: object, hash?: string): void;
 
 ## Sample
@@ -92,7 +92,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		// 4th agument is max concurrency
 		const subscriptions = new Subscriptions(schema, events, null, 10);
 		
-		const subscription = `subscription($name: String!, $age: Int, $city: String) {
+		const requestString = `subscription($name: String!, $age: Int, $city: String) {
 		        user(name: $name, age: $age, city: $city) {
 		            name
 		            city
@@ -106,7 +106,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			}
 		};
 		
-		const subscriptionHash = subscriptions.subscribe('myNamespace', pseudoWebSocketClient, subscription);
+		const subscriptionHash = subscriptions.subscribe('myNamespace', pseudoWebSocketClient, requestString);
 
 		redis.onChannel('updateStream', ({
 			namespace, //'myNamespace'

@@ -241,7 +241,7 @@ describe.only('index.js', () => {
                             hash: '69ad83b324531f979aca7a56cc32047c',
                             namespace: 'namespace',
                             operationName: 'changeUser',
-                            response: {
+                            result: {
                                 data: {
                                     user: {
                                         age: 20,
@@ -273,7 +273,7 @@ describe.only('index.js', () => {
                             hash: '84e15e7de349e804f7ec7db0dfe91c03',
                             namespace: 'namespace',
                             operationName: null,
-                            response: {
+                            result: {
                                 data: {
                                     user: {
                                         age: 20,
@@ -305,7 +305,7 @@ describe.only('index.js', () => {
                             hash: '4c5db9f456b132e72f77939b2d322796',
                             namespace: 'namespace',
                             operationName: null,
-                            response: {
+                            result: {
                                 data: {
                                     userWithSingleEvent: {
                                         age: 20,
@@ -337,7 +337,7 @@ describe.only('index.js', () => {
                             hash: '69ad83b324531f979aca7a56cc32047c',
                             namespace: 'namespace',
                             operationName: 'changeUser',
-                            response: {
+                            result: {
                                 data: {
                                     user: {
                                         age: 20,
@@ -369,7 +369,7 @@ describe.only('index.js', () => {
                             hash: '84e15e7de349e804f7ec7db0dfe91c03',
                             namespace: 'namespace',
                             operationName: null,
-                            response: {
+                            result: {
                                 data: {
                                     user: {
                                         age: 20,

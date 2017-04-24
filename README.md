@@ -25,7 +25,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			hash: string,
 			namespace: string,
 			operationName: string,
-			response: object,
+			result: object,
 			root: object,
 			rootName: string,
 			subscribers: Set<object>,
@@ -121,14 +121,14 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 		subscriptions.stream
 		    .subscribe(({
 		    		operationName,
-		    		response,
+		    		result,
 		    		root,
 		    		subscribers,
 		    		event
 		    	}) => {
 		    		subscribers.forEach(subscriber => subscriber.send({
 		    			operationName,
-		    			response,
+		    			result,
 		    			root,
 		    			event
 		    		}));
@@ -138,7 +138,7 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 			//
 			// {
 			//	   operationName: 'userUpdate',
-			//     response: {
+			//     result: {
 			//         data: {
 			//             user: {
 			//                 age: 20,

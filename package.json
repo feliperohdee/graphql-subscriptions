@@ -14,7 +14,8 @@
     "graphql": "^0.9.3",
     "lodash": "^4.17.4",
     "md5": "^2.2.1",
-    "rxjs": "^5.3.0"
+    "rxjs": "^5.3.0",
+    "smallorange-graphql-lazy-executor": "^1.0.10"
   },
   "devDependencies": {
     "chai": "^3.5.0",

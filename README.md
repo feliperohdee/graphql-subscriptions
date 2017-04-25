@@ -20,21 +20,44 @@ Subscribers are objects that you intend to send messages afterwards, this lib ta
 	### Subscriptions
 		stream: Observable<{
 			args: object,
-			context: object,
+			contextValue: object,
 			event: string,
 			hash: string,
 			namespace: string,
 			operationName: string,
 			result: object,
-			root: object,
 			rootName: string,
+			rootValue: object,
 			subscribers: Set<object>,
-			variables: object
+			variableValues: object
 		}>;
-		constructor(schema: GraphQLSchema, events: object = {}, executor: function = (/* args like http://graphql.org/graphql-js/execution/#execute*/) => Observable, concurrency: Number = Number.MAX_SAFE_INTEGER);
-		run(namespace: string, event: string, root?: object = {}, extendContext?: object = {}): void;
-		subscribe(namespace: string, subscriber: object, requestString: string, variables?: object = {}, context?: object = {}): string (subscription hash);
-		unsubscribe(subscriber: object, hash?: string): void;
+		
+		constructor(
+			schema: GraphQLSchema, 
+			events: object = {}, 
+			customExecutor: function = (/* args like http://graphql.org/graphql-js/execution/#execute*/) => Observable, 
+			concurrency: Number = Number.MAX_SAFE_INTEGER
+		);
+		
+		run(
+			namespace: string, 
+			event: string, 
+			rootValue?: object = {}, 
+			extendContextValue?: object = {}
+		): void;
+		
+		subscribe(
+			namespace: string, 
+			subscriber: object, 
+			requestString: string, 
+			variableValues?: object = {}, 
+			contextValue?: object = {}
+		): Array<string> (subscription hashes);
+		
+		unsubscribe(
+			subscriber: object, 
+			hash?: string
+		): void;
 
 ## Sample
 

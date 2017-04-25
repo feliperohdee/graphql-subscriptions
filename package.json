@@ -1,6 +1,6 @@
 {
   "name": "smallorange-graphql-subscriptions",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Graphql subscription manager",
   "main": "lib/index.js",
   "scripts": {

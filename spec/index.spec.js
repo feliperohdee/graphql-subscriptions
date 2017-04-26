@@ -15,10 +15,11 @@ const {
     event,
     events,
     namespace,
-    queries,
+    requestStrings,
     schema,
     noSubscriptionSchema
 } = require('../testing');
+
 const Subscriptions = require('../');
 
 chai.use(sinonChai);
@@ -70,11 +71,11 @@ describe.only('index.js', () => {
             it('should do nothing if no namespace', done => {
                 const result = [];
 
-                subscriptions.subscribe(namespace, {}, queries[0], {
+                subscriptions.subscribe(namespace, {}, requestStrings[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe(namespace, {}, queries[1], {
+                subscriptions.subscribe(namespace, {}, requestStrings[1], {
                     name: 'Rohde'
                 });
 
@@ -91,11 +92,11 @@ describe.only('index.js', () => {
             it('should do nothing if namespace not found', done => {
                 const result = [];
 
-                subscriptions.subscribe(namespace, {}, queries[0], {
+                subscriptions.subscribe(namespace, {}, requestStrings[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe(namespace, {}, queries[1], {
+                subscriptions.subscribe(namespace, {}, requestStrings[1], {
                     name: 'Rohde'
                 });
 
@@ -112,11 +113,11 @@ describe.only('index.js', () => {
             it('should do nothing if no event', done => {
                 const result = [];
 
-                subscriptions.subscribe(namespace, {}, queries[0], {
+                subscriptions.subscribe(namespace, {}, requestStrings[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe(namespace, {}, queries[1], {
+                subscriptions.subscribe(namespace, {}, requestStrings[1], {
                     name: 'Rohde'
                 });
 
@@ -133,11 +134,11 @@ describe.only('index.js', () => {
             it('should do nothing if event not found', done => {
                 const result = [];
 
-                subscriptions.subscribe(namespace, {}, queries[0], {
+                subscriptions.subscribe(namespace, {}, requestStrings[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe(namespace, {}, queries[1], {
+                subscriptions.subscribe(namespace, {}, requestStrings[1], {
                     name: 'Rohde'
                 });
 
@@ -151,12 +152,12 @@ describe.only('index.js', () => {
                 subscriptions.run(namespace, event + 1);
             });
 
-            it('should handle query error', done => {
-                subscriptions.subscribe(namespace, {}, queries[0], {
+            it('should handle subscription error', done => {
+                subscriptions.subscribe(namespace, {}, requestStrings[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe(namespace, {}, queries[1]);
+                subscriptions.subscribe(namespace, {}, requestStrings[1]);
 
                 subscriptions.stream
                     .subscribe(null, err => {
@@ -167,14 +168,14 @@ describe.only('index.js', () => {
                 subscriptions.run(namespace, event);
             });
 
-            it('should handle no queries', done => {
+            it('should handle no requestStrings', done => {
                 const result = [];
 
-                subscriptions.subscribe(namespace, {}, queries[0], {
+                subscriptions.subscribe(namespace, {}, requestStrings[0], {
                     name: 'Rohde'
                 });
 
-                subscriptions.subscribe(namespace, {}, queries[1]);
+                subscriptions.subscribe(namespace, {}, requestStrings[1]);
 
                 subscriptions.stream
                     .timeoutWith(10, Observable.empty())
@@ -186,31 +187,31 @@ describe.only('index.js', () => {
                 subscriptions.run(namespace, event + 1);
             });
 
-            it('should run queries', done => {
+            it('should run requestStrings', done => {
                 const ref1 = {};
                 const ref2 = {};
                 const ref3 = {};
                 const ref4 = {};
 
-                const sub1 = subscriptions.subscribe(namespace, ref1, queries[0], {
+                const sub1 = subscriptions.subscribe(namespace, ref1, requestStrings[0], {
                     name: 'Rohde'
                 }, {
                     auth: {}
                 });
 
-                const sub2 = subscriptions.subscribe(namespace, ref2, queries[1], {
+                const sub2 = subscriptions.subscribe(namespace, ref2, requestStrings[1], {
                     name: 'Rohde'
                 }, {
                     auth: {}
                 });
 
-                const sub3 = subscriptions.subscribe(namespace, ref3, queries[2], {
+                const sub3 = subscriptions.subscribe(namespace, ref3, requestStrings[2], {
                     name: 'Rohde'
                 }, {
                     auth: {}
                 });
 
-                const sub4 = subscriptions.subscribe(namespace, ref4, queries[3], {
+                const sub4 = subscriptions.subscribe(namespace, ref4, requestStrings[3], {
                     name: 'Rohde'
                 }, {
                     auth: {}
@@ -230,12 +231,12 @@ describe.only('index.js', () => {
                                 auth2: {}
                             },
                             event: 'event',
-                            hash: '69ad83b324531f979aca7a56cc32047c',
+                            hash: '668317bb73a2323b0b1cecda8a24f3a8',
                             namespace: 'namespace',
                             operationName: 'changeUser',
                             result: {
                                 data: {
-                                    user: {
+                                    onUser: {
                                         age: 20,
                                         city: null,
                                         name: 'Rohde'
@@ -245,7 +246,7 @@ describe.only('index.js', () => {
                             rootValue: {
                                 age: 20
                             },
-                            rootName: 'user',
+                            rootName: 'onUser',
                             subscribers: response[0].subscribers,
                             variableValues: {
                                 name: 'Rohde'
@@ -262,12 +263,12 @@ describe.only('index.js', () => {
                                 auth2: {}
                             },
                             event: 'event',
-                            hash: '84e15e7de349e804f7ec7db0dfe91c03',
+                            hash: 'ab66314619958dd94dffc8d58fccea82',
                             namespace: 'namespace',
                             operationName: null,
                             result: {
                                 data: {
-                                    user: {
+                                    onUser: {
                                         age: 20,
                                         city: null,
                                         name: 'Rohde'
@@ -277,7 +278,7 @@ describe.only('index.js', () => {
                             rootValue: {
                                 age: 20
                             },
-                            rootName: 'user',
+                            rootName: 'onUser',
                             subscribers: response[1].subscribers,
                             variableValues: {
                                 name: 'Rohde'
@@ -294,12 +295,12 @@ describe.only('index.js', () => {
                                 auth2: {}
                             },
                             event: 'event',
-                            hash: '4c5db9f456b132e72f77939b2d322796',
+                            hash: '9dfe8b20b9ce6868189969d827b2b6b8',
                             namespace: 'namespace',
                             operationName: null,
                             result: {
                                 data: {
-                                    userWithSingleEvent: {
+                                    onUserWithSingleEvent: {
                                         age: 20,
                                         city: null,
                                         name: 'Rohde'
@@ -309,7 +310,7 @@ describe.only('index.js', () => {
                             rootValue: {
                                 age: 20
                             },
-                            rootName: 'userWithSingleEvent',
+                            rootName: 'onUserWithSingleEvent',
                             subscribers: response[2].subscribers,
                             variableValues: {
                                 name: 'Rohde'
@@ -326,12 +327,12 @@ describe.only('index.js', () => {
                                 auth2: {}
                             },
                             event: 'anotherEvent',
-                            hash: '69ad83b324531f979aca7a56cc32047c',
+                            hash: '668317bb73a2323b0b1cecda8a24f3a8',
                             namespace: 'namespace',
                             operationName: 'changeUser',
                             result: {
                                 data: {
-                                    user: {
+                                    onUser: {
                                         age: 20,
                                         city: null,
                                         name: 'Rohde'
@@ -341,7 +342,7 @@ describe.only('index.js', () => {
                             rootValue: {
                                 age: 20
                             },
-                            rootName: 'user',
+                            rootName: 'onUser',
                             subscribers: response[3].subscribers,
                             variableValues: {
                                 name: 'Rohde'
@@ -358,12 +359,12 @@ describe.only('index.js', () => {
                                 auth2: {}
                             },
                             event: 'anotherEvent',
-                            hash: '84e15e7de349e804f7ec7db0dfe91c03',
+                            hash: 'ab66314619958dd94dffc8d58fccea82',
                             namespace: 'namespace',
                             operationName: null,
                             result: {
                                 data: {
-                                    user: {
+                                    onUser: {
                                         age: 20,
                                         city: null,
                                         name: 'Rohde'
@@ -373,7 +374,7 @@ describe.only('index.js', () => {
                             rootValue: {
                                 age: 20
                             },
-                            rootName: 'user',
+                            rootName: 'onUser',
                             subscribers: response[4].subscribers,
                             variableValues: {
                                 name: 'Rohde'
@@ -406,7 +407,7 @@ describe.only('index.js', () => {
                 });
             });
 
-            it('should run queries with custom executor', done => {
+            it('should run requestStrings with custom executor', done => {
                 const customExecutorStub = sinon.stub();
                 const customExecutor = (...args) => Observable.fromPromise(execute.apply(null, args))
                     .do(customExecutorStub);
@@ -418,25 +419,25 @@ describe.only('index.js', () => {
                 const ref3 = {};
                 const ref4 = {};
 
-                const sub1 = subscriptions.subscribe(namespace, ref1, queries[0], {
+                const sub1 = subscriptions.subscribe(namespace, ref1, requestStrings[0], {
                     name: 'Rohde'
                 }, {
                     auth: {}
                 });
 
-                const sub2 = subscriptions.subscribe(namespace, ref2, queries[1], {
+                const sub2 = subscriptions.subscribe(namespace, ref2, requestStrings[1], {
                     name: 'Rohde'
                 }, {
                     auth: {}
                 });
 
-                const sub3 = subscriptions.subscribe(namespace, ref3, queries[2], {
+                const sub3 = subscriptions.subscribe(namespace, ref3, requestStrings[2], {
                     name: 'Rohde'
                 }, {
                     auth: {}
                 });
 
-                const sub4 = subscriptions.subscribe(namespace, ref4, queries[3], {
+                const sub4 = subscriptions.subscribe(namespace, ref4, requestStrings[3], {
                     name: 'Rohde'
                 }, {
                     auth: {}
@@ -449,7 +450,7 @@ describe.only('index.js', () => {
                         expect(customExecutorStub).to.have.been.callCount(5);
                         expect(customExecutorStub).to.have.been.calledWith({
                             data: {
-                                user: {
+                                onUser: {
                                     age: 20,
                                     city: null,
                                     name: 'Rohde'
@@ -459,7 +460,7 @@ describe.only('index.js', () => {
 
                         expect(customExecutorStub).to.have.been.calledWith({
                             data: {
-                                userWithSingleEvent: {
+                                onUserWithSingleEvent: {
                                     age: 20,
                                     city: null,
                                     name: 'Rohde'
@@ -469,7 +470,7 @@ describe.only('index.js', () => {
 
                         expect(customExecutorStub).to.have.been.calledWith({
                             data: {
-                                user: {
+                                onUser: {
                                     age: 20,
                                     city: null,
                                     name: 'Rohde'
@@ -488,12 +489,12 @@ describe.only('index.js', () => {
                                 auth2: {}
                             },
                             event: 'event',
-                            hash: '69ad83b324531f979aca7a56cc32047c',
+                            hash: '668317bb73a2323b0b1cecda8a24f3a8',
                             namespace: 'namespace',
                             operationName: 'changeUser',
                             result: {
                                 data: {
-                                    user: {
+                                    onUser: {
                                         age: 20,
                                         city: null,
                                         name: 'Rohde'
@@ -503,7 +504,7 @@ describe.only('index.js', () => {
                             rootValue: {
                                 age: 20
                             },
-                            rootName: 'user',
+                            rootName: 'onUser',
                             subscribers: response[0].subscribers,
                             variableValues: {
                                 name: 'Rohde'
@@ -520,12 +521,12 @@ describe.only('index.js', () => {
                                 auth2: {}
                             },
                             event: 'event',
-                            hash: '84e15e7de349e804f7ec7db0dfe91c03',
+                            hash: 'ab66314619958dd94dffc8d58fccea82',
                             namespace: 'namespace',
                             operationName: null,
                             result: {
                                 data: {
-                                    user: {
+                                    onUser: {
                                         age: 20,
                                         city: null,
                                         name: 'Rohde'
@@ -535,7 +536,7 @@ describe.only('index.js', () => {
                             rootValue: {
                                 age: 20
                             },
-                            rootName: 'user',
+                            rootName: 'onUser',
                             subscribers: response[1].subscribers,
                             variableValues: {
                                 name: 'Rohde'
@@ -552,12 +553,12 @@ describe.only('index.js', () => {
                                 auth2: {}
                             },
                             event: 'event',
-                            hash: '4c5db9f456b132e72f77939b2d322796',
+                            hash: '9dfe8b20b9ce6868189969d827b2b6b8',
                             namespace: 'namespace',
                             operationName: null,
                             result: {
                                 data: {
-                                    userWithSingleEvent: {
+                                    onUserWithSingleEvent: {
                                         age: 20,
                                         city: null,
                                         name: 'Rohde'
@@ -567,7 +568,7 @@ describe.only('index.js', () => {
                             rootValue: {
                                 age: 20
                             },
-                            rootName: 'userWithSingleEvent',
+                            rootName: 'onUserWithSingleEvent',
                             subscribers: response[2].subscribers,
                             variableValues: {
                                 name: 'Rohde'
@@ -584,12 +585,12 @@ describe.only('index.js', () => {
                                 auth2: {}
                             },
                             event: 'anotherEvent',
-                            hash: '69ad83b324531f979aca7a56cc32047c',
+                            hash: '668317bb73a2323b0b1cecda8a24f3a8',
                             namespace: 'namespace',
                             operationName: 'changeUser',
                             result: {
                                 data: {
-                                    user: {
+                                    onUser: {
                                         age: 20,
                                         city: null,
                                         name: 'Rohde'
@@ -599,7 +600,7 @@ describe.only('index.js', () => {
                             rootValue: {
                                 age: 20
                             },
-                            rootName: 'user',
+                            rootName: 'onUser',
                             subscribers: response[3].subscribers,
                             variableValues: {
                                 name: 'Rohde'
@@ -616,12 +617,12 @@ describe.only('index.js', () => {
                                 auth2: {}
                             },
                             event: 'anotherEvent',
-                            hash: '84e15e7de349e804f7ec7db0dfe91c03',
+                            hash: 'ab66314619958dd94dffc8d58fccea82',
                             namespace: 'namespace',
                             operationName: null,
                             result: {
                                 data: {
-                                    user: {
+                                    onUser: {
                                         age: 20,
                                         city: null,
                                         name: 'Rohde'
@@ -631,7 +632,7 @@ describe.only('index.js', () => {
                             rootValue: {
                                 age: 20
                             },
-                            rootName: 'user',
+                            rootName: 'onUser',
                             subscribers: response[4].subscribers,
                             variableValues: {
                                 name: 'Rohde'
@@ -730,15 +731,19 @@ describe.only('index.js', () => {
         });
 
         it('should throw if subscriber not object', () => {
-            expect(() => subscriptions.subscribe('string', namespace, `subscription {user{name}}`)).to.throw('Subscriber must be an object.');
+            expect(() => subscriptions.subscribe('string', namespace, `subscription {onUser{name}}`)).to.throw('Subscriber must be an object.');
         });
 
         it('should throw if context not plain object', () => {
-            expect(() => subscriptions.subscribe(namespace, {}, `subscription {user{name}}`, {}, new Map())).to.throw('contextValue should be a plain object.');
+            expect(() => subscriptions.subscribe(namespace, {}, `subscription {onUser{name}}`, {}, new Map())).to.throw('contextValue should be a plain object.');
         });
 
         it('should throw if multiple roots', () => {
-            expect(() => subscriptions.subscribe(namespace, {}, `subscription changeUser{user{name} user{name}}`)).to.throw('GraphQLError: Subscription "changeUser" must have only one field.');
+            expect(() => subscriptions.subscribe(namespace, {}, `subscription changeUser{onUser{name} onUser{name}}`)).to.throw('GraphQLError: Subscription "changeUser" must have only one field.');
+        });
+
+        it('should throw if requestString doesnt starts with "on"', () => {
+            expect(() => subscriptions.subscribe(namespace, {}, `subscription {user{name}}`)).to.throw('GraphQLError: Subscriptions must start with "on" like "onUser".');
         });
 
         it('should throw if fragments', () => {
@@ -755,68 +760,68 @@ describe.only('index.js', () => {
             `)).to.throw('GraphQLError: Subscriptions do not support fragments on the root field.');
         });
 
-        it('should return hashes based on query, variables and context', () => {
-            const sub1 = subscriptions.subscribe(namespace, {}, queries[0], {
+        it('should return hashes based on requestString, variables and context', () => {
+            const sub1 = subscriptions.subscribe(namespace, {}, requestStrings[0], {
                 age: 20
             });
 
-            const sub2 = subscriptions.subscribe(namespace, {}, queries[0], {
+            const sub2 = subscriptions.subscribe(namespace, {}, requestStrings[0], {
                 age: 20
             });
 
-            const sub3 = subscriptions.subscribe(namespace, {}, queries[1], {
+            const sub3 = subscriptions.subscribe(namespace, {}, requestStrings[1], {
                 age: 20
             });
 
-            const sub4 = subscriptions.subscribe(namespace, {}, queries[1], {
+            const sub4 = subscriptions.subscribe(namespace, {}, requestStrings[1], {
                 age: 21
             });
 
-            const sub5 = subscriptions.subscribe(namespace, {}, queries[1], {
-                age: 21
-            }, {
-                auth: {}
-            });
-
-            const sub6 = subscriptions.subscribe(namespace, {}, queries[2], {
+            const sub5 = subscriptions.subscribe(namespace, {}, requestStrings[1], {
                 age: 21
             }, {
                 auth: {}
             });
 
-            const sub7 = subscriptions.subscribe(namespace, {}, queries[3], {
+            const sub6 = subscriptions.subscribe(namespace, {}, requestStrings[2], {
+                age: 21
+            }, {
+                auth: {}
+            });
+
+            const sub7 = subscriptions.subscribe(namespace, {}, requestStrings[3], {
                 age: 21
             }, {
                 auth: {}
             });
 
             expect(sub1).to.deep.equal([
-                'namespace.event.9bf2218dde7d577a41692bcd2faa5a24',
-                'namespace.anotherEvent.9bf2218dde7d577a41692bcd2faa5a24'
+                'namespace.event.b11384ed685ee9234911782a21c07a54',
+                'namespace.anotherEvent.b11384ed685ee9234911782a21c07a54'
             ]);
 
             expect(sub2).to.deep.equal([
-                'namespace.event.9bf2218dde7d577a41692bcd2faa5a24',
-                'namespace.anotherEvent.9bf2218dde7d577a41692bcd2faa5a24'
+                'namespace.event.b11384ed685ee9234911782a21c07a54',
+                'namespace.anotherEvent.b11384ed685ee9234911782a21c07a54'
             ]);
 
             expect(sub3).to.deep.equal([
-                'namespace.event.c45682c768a5c33d31721e0b221d0202',
-                'namespace.anotherEvent.c45682c768a5c33d31721e0b221d0202'
+                'namespace.event.b36f61eae94c8373ca3a5c5778961f20',
+                'namespace.anotherEvent.b36f61eae94c8373ca3a5c5778961f20'
             ]);
 
             expect(sub4).to.deep.equal([
-                'namespace.event.bd85b637bc7b30cb50da4f3c8110767d',
-                'namespace.anotherEvent.bd85b637bc7b30cb50da4f3c8110767d'
+                'namespace.event.b6776c4344e6edd5e0e3578200944ae6',
+                'namespace.anotherEvent.b6776c4344e6edd5e0e3578200944ae6'
             ]);
 
             expect(sub5).to.deep.equal([
-                'namespace.event.947cadfd8f79a212fb1388b2d2b38f77',
-                'namespace.anotherEvent.947cadfd8f79a212fb1388b2d2b38f77'
+                'namespace.event.359958d78db977fe79f7598d8d392939',
+                'namespace.anotherEvent.359958d78db977fe79f7598d8d392939'
             ]);
 
             expect(sub6).to.deep.equal([
-                'namespace.event.f8169b1cbc882d5a9bd319fdc5092c06'
+                'namespace.event.265f24197b3d21affa7a99ecc08e9457'
             ]);
 
             expect(sub7).to.deep.equal([]);
@@ -828,7 +833,7 @@ describe.only('index.js', () => {
         });
 
         it('should create subscriptions for all namespaces and events', () => {
-            const sub1 = subscriptions.subscribe(namespace, {}, queries[0], {
+            const sub1 = subscriptions.subscribe(namespace, {}, requestStrings[0], {
                 age: 20
             });
 
@@ -839,8 +844,8 @@ describe.only('index.js', () => {
         });
 
         it('should add subscribers', () => {
-            const subscribe1 = ref => subscriptions.subscribe(namespace, ref, queries[0]);
-            const subscribe2 = ref => subscriptions.subscribe(namespace, ref, queries[1]);
+            const subscribe1 = ref => subscriptions.subscribe(namespace, ref, requestStrings[0]);
+            const subscribe2 = ref => subscriptions.subscribe(namespace, ref, requestStrings[1]);
 
             const ref1 = {};
             const sub1 = subscribe1(ref1);
@@ -873,12 +878,12 @@ describe.only('index.js', () => {
             });
         });
 
-        it('should reuse shallow identic queries', () => {
-            const sub1 = subscriptions.subscribe(namespace, {}, queries[0], {
+        it('should reuse shallow identic requestStrings', () => {
+            const sub1 = subscriptions.subscribe(namespace, {}, requestStrings[0], {
                 age: 20
             });
 
-            const sub2 = subscriptions.subscribe(namespace, {}, queries[0], {
+            const sub2 = subscriptions.subscribe(namespace, {}, requestStrings[0], {
                 age: 20
             });
 
@@ -889,12 +894,12 @@ describe.only('index.js', () => {
             expect(_.size(_.get(subscriptions.subscriptions, `${namespace}.${event}`))).to.equal(1);
         });
 
-        it('should not reuse shallow different queries', () => {
-            const sub1 = subscriptions.subscribe(namespace, {}, queries[0], {
+        it('should not reuse shallow different requestStrings', () => {
+            const sub1 = subscriptions.subscribe(namespace, {}, requestStrings[0], {
                 age: 20
             });
 
-            const sub2 = subscriptions.subscribe(namespace, {}, queries[1], {
+            const sub2 = subscriptions.subscribe(namespace, {}, requestStrings[1], {
                 age: 20
             });
 
@@ -907,8 +912,8 @@ describe.only('index.js', () => {
     });
 
     describe('unsubscribe', () => {
-        const subscribe1 = ref => subscriptions.subscribe(namespace, ref, queries[0]);
-        const subscribe2 = ref => subscriptions.subscribe(namespace, ref, queries[1]);
+        const subscribe1 = ref => subscriptions.subscribe(namespace, ref, requestStrings[0]);
+        const subscribe2 = ref => subscriptions.subscribe(namespace, ref, requestStrings[1]);
         let ref1;
         let sub1;
         let ref2;
@@ -978,8 +983,8 @@ describe.only('index.js', () => {
         });
 
         it('should unsubscribe ref1 only on sub2', () => {
-            sub1 = subscriptions.subscribe(namespace, ref1, queries[0]);
-            sub2 = subscriptions.subscribe(namespace, ref1, queries[2]);
+            sub1 = subscriptions.subscribe(namespace, ref1, requestStrings[0]);
+            sub2 = subscriptions.subscribe(namespace, ref1, requestStrings[2]);
 
             _.each(sub1, sub => {
                 expect(_.get(subscriptions.subscriptions, `${sub}.subscribers`).has(ref1)).to.be.true;
@@ -1008,10 +1013,10 @@ describe.only('index.js', () => {
     });
 
     describe('getASTData', () => {
-        it('should extract query data from parsed query', () => {
-            const parsedQuery = parse(queries[0]);
+        it('should extract data from documentAST', () => {
+            const documentAST = parse(requestStrings[0]);
 
-            expect(subscriptions.getASTData(schema, parsedQuery, {
+            expect(subscriptions.getASTData(schema, documentAST, {
                 name: 'Rohde',
                 age: 20,
                 city: 'San Francisco',
@@ -1028,31 +1033,31 @@ describe.only('index.js', () => {
                 ],
                 operationName: 'changeUser',
                 rootAlias: null,
-                rootName: 'user'
+                rootName: 'onUser'
             }]);
         });
 
         it('should return an array of string events', () => {
-            const parsedQuery = parse(queries[0]);
+            const documentAST = parse(requestStrings[0]);
 
-            expect(subscriptions.getASTData(schema, parsedQuery)[0].events).to.deep.equal([
+            expect(subscriptions.getASTData(schema, documentAST)[0].events).to.deep.equal([
                 'event',
                 'anotherEvent'
             ]);
         });
 
         it('should return an array of string events even when declared as string', () => {
-            const parsedQuery = parse(queries[2]);
+            const documentAST = parse(requestStrings[2]);
 
-            expect(subscriptions.getASTData(schema, parsedQuery)[0].events).to.deep.equal([
+            expect(subscriptions.getASTData(schema, documentAST)[0].events).to.deep.equal([
                 'event'
             ]);
         });
 
         it('should return null if no subscription event', () => {
-            const parsedQuery = parse(queries[0]);
+            const documentAST = parse(requestStrings[0]);
 
-            expect(subscriptions.getASTData(noSubscriptionSchema, parsedQuery, {
+            expect(subscriptions.getASTData(noSubscriptionSchema, documentAST, {
                 name: 'Rohde',
                 age: 20,
                 city: 'San Francisco',

@@ -9,40 +9,40 @@ const event = 'event';
 const namespace = 'namespace';
 
 const events = {
-    user: [
+    onUser: [
         0,
         'event',
         false,
         'anotherEvent',
         null
     ],
-    userWithSingleEvent: 'event'
+    onUserWithSingleEvent: 'event'
 };
 
-const queries = [
+const requestStrings = [
     `subscription changeUser($name: String!, $age: Int, $city: String) {
-        user(name: $name, age: $age, city: $city) {
+        onUser(name: $name, age: $age, city: $city) {
             name
             city
             age
         }
     }`,
     `subscription ($name: String!, $age: Int, $city: String) {
-        user(name: $name, age: $age, city: $city) {
+        onUser(name: $name, age: $age, city: $city) {
             name
             city
             age
         }
     }`,
     `subscription ($name: String!, $age: Int, $city: String) {
-        userWithSingleEvent(name: $name, age: $age, city: $city) {
+        onUserWithSingleEvent(name: $name, age: $age, city: $city) {
             name
             city
             age
         }
     }`,
     `subscription ($name: String!, $age: Int, $city: String) {
-        userWithoutEvents(name: $name, age: $age, city: $city) {
+        onUserWithoutEvents(name: $name, age: $age, city: $city) {
             name
             city
             age
@@ -77,7 +77,7 @@ const schema = new GraphQLSchema({
     subscription: new GraphQLObjectType({
         name: 'SubscriptionType',
         fields: {
-            user: {
+            onUser: {
                 type: UserType,
                 args: {
                     age: {
@@ -94,7 +94,7 @@ const schema = new GraphQLSchema({
                     return Object.assign({}, root, args);
                 }
             },
-            userWithSingleEvent: {
+            onUserWithSingleEvent: {
                 type: UserType,
                 args: {
                     age: {
@@ -111,7 +111,7 @@ const schema = new GraphQLSchema({
                     return Object.assign({}, root, args);
                 }
             },
-            userWithoutEvents: {
+            onUserWithoutEvents: {
                 type: UserType,
                 args: {
                     age: {
@@ -147,7 +147,7 @@ module.exports = {
     event,
     events,
     namespace,
-    queries,
+    requestStrings,
     schema,
     noSubscriptionSchema
 };
